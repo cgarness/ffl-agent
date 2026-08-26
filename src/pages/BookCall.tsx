@@ -1,11 +1,16 @@
 import { useParams, Link } from "react-router-dom";
 import { useAgentProfile } from "@/hooks/useAgentProfile";
 import BookCallForm from "@/components/BookCallForm";
+import LegalNavLinks from "@/components/LegalNavLinks";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { Loader2 } from "lucide-react";
 
 export default function BookCall() {
   const { agencySlug, agentSlug } = useParams<{ agencySlug: string; agentSlug: string }>();
   const { data: agent, isLoading, error } = useAgentProfile(agencySlug, agentSlug);
+  usePageTitle(
+    agent ? `Book a Call | ${agent.name} | ${agent.agency || "CG Financial"}` : "Book a Call"
+  );
 
   if (isLoading) {
     return (
@@ -40,27 +45,14 @@ export default function BookCall() {
           <BookCallForm agentName={agent.name} agencyName={agent.agency} />
         </div>
 
-        <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+        <div className="flex flex-col items-center gap-3 text-xs text-muted-foreground">
           <Link
             to={`/${agencySlug}/${agentSlug}`}
             className="hover:text-accent transition-colors underline-offset-4 hover:underline"
           >
             ← Back to Profile
           </Link>
-          <span>·</span>
-          <Link
-            to={`/${agencySlug}/${agentSlug}/privacy-policy`}
-            className="hover:text-accent transition-colors underline-offset-4 hover:underline"
-          >
-            Privacy Policy
-          </Link>
-          <span>·</span>
-          <Link
-            to={`/${agencySlug}/${agentSlug}#terms`}
-            className="hover:text-accent transition-colors underline-offset-4 hover:underline"
-          >
-            Terms and Conditions
-          </Link>
+          <LegalNavLinks />
         </div>
       </div>
     </div>

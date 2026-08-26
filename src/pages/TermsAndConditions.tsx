@@ -1,19 +1,47 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import { useLegalBrand } from "@/hooks/useLegalBrand";
+import { useLegalPaths } from "@/hooks/useLegalPaths";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { SMS_NON_SHARING_STATEMENT } from "@/lib/a2pBrand";
+import BrandContactBlock from "@/components/BrandContactBlock";
 
 const TermsAndConditions: React.FC = () => {
+  const { brand, scoped, profileHref, isLoading, notFound } = useLegalBrand();
+  const { privacy } = useLegalPaths();
+  usePageTitle(`Terms and Conditions | ${brand.agency}`);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 text-center">
+        <h1 className="text-2xl font-bold text-foreground">Agent Not Found</h1>
+        <p className="text-muted-foreground">The terms page you're looking for doesn't exist.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-4xl mx-auto bg-card border border-border rounded-2xl p-6 sm:p-10 space-y-8">
         <header className="space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">Terms and Conditions for CG Financial</h1>
+          <h1 className="text-3xl font-bold text-foreground">Terms and Conditions for {brand.agency}</h1>
           <p className="text-sm text-muted-foreground">Effective Date: April 15, 2026</p>
         </header>
 
         <p className="text-sm text-muted-foreground leading-relaxed">
           These Terms and Conditions ("Terms") govern your access to and use of services provided by
-          Christopher Garness and CG Financial ("we," "us," or "our"), including our website, forms,
-          phone, email, and SMS communications. By accessing our website or submitting your
-          information, you agree to these Terms.
+          {` ${brand.name} and ${brand.agency} `}
+          ("we," "us," or "our"), including our website, forms, phone, email, and SMS communications.
+          By accessing our website or submitting your information, you agree to these Terms.
         </p>
 
         <section className="space-y-3">
@@ -28,7 +56,7 @@ const TermsAndConditions: React.FC = () => {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-foreground">2. Services Provided</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Christopher Garness and CG Financial provide independent life insurance consulting
+            {brand.name} and {brand.agency} provide independent life insurance consulting
             services. We help individuals find and apply for life insurance products offered by
             licensed insurance carriers. We do not underwrite or issue insurance policies, and we do
             not guarantee approval for any insurance product.
@@ -40,8 +68,8 @@ const TermsAndConditions: React.FC = () => {
           <p className="text-sm text-muted-foreground leading-relaxed">
             By providing your phone number and optionally consenting to SMS communications, you
             agree to receive recurring text messages including appointment reminders, insurance
-            updates, policy information, quote follow-ups, and promotional offers from Christopher
-            Garness and CG Financial.
+            updates, policy information, quote follow-ups, and promotional offers from {brand.name}{" "}
+            and {brand.agency}.
           </p>
           <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
             <li>Message frequency may vary</li>
@@ -51,10 +79,7 @@ const TermsAndConditions: React.FC = () => {
             <li>Consent is not a condition of purchase</li>
           </ul>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            <strong>
-              No mobile opt-in data or consent will be shared with third parties or affiliates for
-              marketing or promotional purposes.
-            </strong>
+            <strong>{SMS_NON_SHARING_STATEMENT}</strong>
           </p>
         </section>
 
@@ -81,7 +106,7 @@ const TermsAndConditions: React.FC = () => {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-foreground">6. Limitation of Liability</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Christopher Garness and CG Financial shall not be liable for any direct, indirect,
+            {brand.name} and {brand.agency} shall not be liable for any direct, indirect,
             incidental, consequential, or special damages arising from your use of this website or
             our services, to the fullest extent permitted by law.
           </p>
@@ -98,20 +123,19 @@ const TermsAndConditions: React.FC = () => {
 
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-foreground">8. Contact Information</h2>
-          <div className="text-sm text-muted-foreground leading-relaxed">
-            <p>Christopher Garness</p>
-            <p>CG Financial</p>
-            <p>6768 Regal Park Dr</p>
-            <p>Fontana, CA 92336</p>
-            <p className="mt-2">Phone: 909-775-6963</p>
-            <p>
-              Email:{" "}
-              <a href="mailto:chris@fflagent.com" className="underline underline-offset-2 hover:text-accent">
-                chris@fflagent.com
-              </a>
-            </p>
-          </div>
+          <BrandContactBlock brand={brand} />
         </section>
+
+        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+          {scoped && (
+            <Link to={profileHref} className="underline underline-offset-2 hover:text-accent">
+              Back to profile
+            </Link>
+          )}
+          <Link to={privacy} className="underline underline-offset-2 hover:text-accent">
+            Privacy Policy
+          </Link>
+        </div>
       </div>
     </div>
   );

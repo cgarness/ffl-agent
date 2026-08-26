@@ -22,18 +22,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { CheckCircle } from "lucide-react";
-import { Link } from "react-router-dom";
-
-const US_STATES = [
-  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut",
-  "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa",
-  "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan",
-  "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
-  "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio",
-  "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
-  "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia",
-  "Wisconsin", "Wyoming",
-];
+import { useAgentData } from "@/contexts/AgentDataContext";
+import { useLegalPaths } from "@/hooks/useLegalPaths";
+import { DEFAULT_BRAND } from "@/lib/a2pBrand";
+import SmsConsentCopy from "@/components/SmsConsentCopy";
+import { US_STATES } from "@/lib/usStates";
 
 const phoneRegex = /^\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
 
@@ -49,6 +42,10 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const SmsOptInForm: React.FC = () => {
+  const { data } = useAgentData();
+  const { privacy, terms } = useLegalPaths();
+  const agentName = data.name || DEFAULT_BRAND.name;
+  const agencyName = data.agency || DEFAULT_BRAND.agency;
   const [submitted, setSubmitted] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -177,32 +174,20 @@ const SmsOptInForm: React.FC = () => {
                   className="text-sm font-normal leading-snug cursor-pointer"
                   onClick={() => field.onChange(!field.value)}
                 >
-                  I agree to receive calls, SMS/MMS, and emails from Christopher Garness and CG Financial (optional).
+                  I agree to receive calls, SMS/MMS, and emails from {agentName} and {agencyName}{" "}
+                  (optional).
                 </Label>
               </FormItem>
             )}
           />
 
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            <strong>Opt-In:</strong> By checking this box, I provide my express written consent to
-            receive telephone calls (including calls using an automatic telephone dialing system or
-            an artificial or prerecorded voice) and recurring SMS/MMS text messages from{" "}
-            <strong>Christopher Garness</strong> and <strong>CG Financial</strong> at the phone
-            number provided above, including for marketing purposes. Consent is not required to
-            receive a quote or book a call. Message and data rates may apply. Message frequency may
-            vary. I may revoke this consent at any time by replying STOP to any message or by
-            contacting us directly. Reply HELP for help. I have read and agree to the{" "}
-            <Link to="/privacy-policy" className="underline underline-offset-2 hover:text-accent">
-              Privacy Policy
-            </Link>{" "}
-            and{" "}
-            <Link to="/terms-and-conditions" className="underline underline-offset-2 hover:text-accent">
-              Terms and Conditions
-            </Link>
-            .
-          </p>
+          <SmsConsentCopy
+            agentName={agentName}
+            agencyName={agencyName}
+            privacyHref={privacy}
+            termsHref={terms}
+          />
         </div>
-
         <Button type="submit" variant="hero" size="xl" className="w-full">
           Get My Free Quote
         </Button>

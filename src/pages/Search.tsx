@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 interface AgentResult {
   name: string;
@@ -16,6 +17,7 @@ interface AgentResult {
 }
 
 export default function Search() {
+  usePageTitle("Find an Agent | Underwriter Verified");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<AgentResult[]>([]);
   const [searched, setSearched] = useState(false);
@@ -108,6 +110,15 @@ export default function Search() {
           ))}
         </div>
       </div>
+      <footer className="border-t border-border py-8">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-sm font-medium text-foreground">Underwriter Verified</p>
+          <p className="mx-auto mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground">
+            This directory does not send text messages. Each agent profile page, including any SMS
+            program, is operated by the named licensed agent and agency.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

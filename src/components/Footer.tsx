@@ -1,7 +1,9 @@
 import { useAgentData } from "@/contexts/AgentDataContext";
+import LegalNavLinks from "@/components/LegalNavLinks";
 
 export default function Footer() {
   const { data } = useAgentData();
+  const sender = data.agency || data.name;
 
   return (
     <footer className="border-t border-border bg-card py-10">
@@ -9,6 +11,14 @@ export default function Footer() {
       <div className="container text-center">
         <p className="text-sm font-medium text-foreground">
           © {new Date().getFullYear()} {data.name}{data.agency ? ` — ${data.agency}` : ""} — Licensed Life Insurance Agent
+        </p>
+
+        <LegalNavLinks className="mt-4 flex items-center justify-center gap-4 text-xs text-muted-foreground" />
+
+        <p className="mx-auto mt-4 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+          {sender} may send recurring automated marketing and informational text messages. Message
+          frequency varies. Message and data rates may apply. Reply STOP to opt out. Reply HELP for
+          help. Consent is not a condition of purchase.
         </p>
 
         <p className="mx-auto mt-6 max-w-2xl text-xs leading-relaxed text-muted-foreground">
