@@ -1,4 +1,4 @@
-import { Phone, Mail, MessageSquare } from "lucide-react";
+import { Phone, Mail, MessageSquare, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAgentData } from "@/contexts/AgentDataContext";
 import agentPhotoDefault from "@/assets/agent-headshot.jpg";
@@ -35,9 +35,20 @@ export default function HeroSection() {
           {data.name}
         </h1>
 
+        <div
+          className="mt-2 flex items-center gap-1.5 animate-reveal"
+          style={{ animationDelay: "125ms" }}
+          aria-label="Verified agent"
+        >
+          <BadgeCheck size={18} className="text-emerald-600" aria-hidden="true" />
+          <span className="text-sm font-semibold tracking-wide text-emerald-700">
+            Verified
+          </span>
+        </div>
+
         {data.agency && (
           <p
-            className="mt-1 text-sm font-medium text-accent animate-reveal"
+            className="mt-1.5 text-sm font-medium text-accent animate-reveal"
             style={{ animationDelay: "150ms" }}
           >
             {data.agency}
