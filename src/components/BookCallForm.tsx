@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,7 +15,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { CheckCircle } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { useLegalPaths } from "@/hooks/useLegalPaths";
+import SmsConsentCopy from "@/components/SmsConsentCopy";
 
 const phoneRegex = /^\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/;
 
@@ -36,18 +37,7 @@ interface BookCallFormProps {
 
 const BookCallForm: React.FC<BookCallFormProps> = ({ agentName, agencyName }) => {
   const [submitted, setSubmitted] = useState(false);
-  const { agencySlug, agentSlug } = useParams<{ agencySlug: string; agentSlug: string }>();
-
-  const legalLinks = useMemo(() => {
-    if (!agencySlug || !agentSlug) {
-      return { privacy: "/privacy-policy", terms: "/terms-and-conditions" };
-    }
-
-    return {
-      privacy: `/${agencySlug}/${agentSlug}/privacy-policy`,
-      terms: `/${agencySlug}/${agentSlug}/terms-and-conditions`,
-    };
-  }, [agencySlug, agentSlug]);
+  const { privacy, terms } = useLegalPaths();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -163,24 +153,12 @@ const BookCallForm: React.FC<BookCallFormProps> = ({ agentName, agencyName }) =>
             )}
           />
 
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            By checking the box above and submitting this form, I provide my express written consent
-            to receive telephone calls (including calls using an automatic telephone dialing system
-            or an artificial or prerecorded voice) and SMS/text messages from{" "}
-            <strong>{agentName}</strong> and <strong>{agencyName}</strong> at the phone number
-            provided above, including for marketing purposes. I understand that my consent is not a
-            condition of purchasing any goods or services. Message and data rates may apply. Message
-            frequency may vary. I may revoke this consent at any time by replying STOP to any
-            message or by contacting us directly. Reply HELP for help. I have read and agree to the{" "}
-            <Link to={legalLinks.privacy} className="underline underline-offset-2 hover:text-accent">
-              Privacy Policy
-            </Link>{" "}
-            and{" "}
-            <Link to={legalLinks.terms} className="underline underline-offset-2 hover:text-accent">
-              Terms and Conditions
-            </Link>
-            .
-          </p>
+          <SmsConsentCopy
+            agentName={agentName}
+            agencyName={agencyName}
+            privacyHref={privacy}
+            termsHref={terms}
+          />
         </div>
 
         <Button type="submit" variant="hero" size="xl" className="w-full">

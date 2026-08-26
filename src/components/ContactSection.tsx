@@ -24,6 +24,10 @@ export default function ContactSection() {
                 Book on My Calendar
               </a>
             </Button>
+            <p className="mt-4 max-w-sm text-sm text-muted-foreground">
+              Want a call or text instead? Use the quote form above and check the optional SMS box.
+              This message form does not opt you in to text messages.
+            </p>
           </div>
 
           <ContactForm />
@@ -34,7 +38,7 @@ export default function ContactSection() {
 }
 
 function ContactForm() {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [form, setForm] = useState({ name: "", email: "", message: "" });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -47,7 +51,6 @@ function ContactForm() {
     >
       <FormInput name="name" placeholder="Your Name" value={form.name} onChange={handleChange} />
       <FormInput name="email" type="email" placeholder="Email Address" value={form.email} onChange={handleChange} />
-      <FormInput name="phone" type="tel" placeholder="Phone (optional)" value={form.phone} onChange={handleChange} />
       <textarea
         name="message"
         rows={4}
@@ -56,6 +59,9 @@ function ContactForm() {
         onChange={handleChange}
         className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       />
+      <p className="text-xs text-muted-foreground">
+        Submitting this form does not subscribe you to SMS. Reply STOP on any text to opt out.
+      </p>
       <Button variant="hero" size="lg" type="submit" className="w-full">
         <Send size={16} />
         Send Message

@@ -8,7 +8,8 @@ export default function LeadCaptureSection() {
           Get Your Free Life Insurance Quote
         </h2>
         <p className="text-center text-muted-foreground mb-8">
-          Fill out the form below and we'll be in touch shortly.
+          Fill out the form below and we'll be in touch shortly. Checking the SMS box is optional
+          and is not required to request a quote.
         </p>
         <div className="bg-card rounded-2xl shadow-lg p-6 sm:p-8 border border-border">
           <SmsOptInForm />

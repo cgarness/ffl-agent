@@ -2,6 +2,7 @@ import { Shield, Search, FileCheck, UserCheck, Phone, Building2, BadgeCheck, Arr
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
+import { usePageTitle } from "@/hooks/usePageTitle";
 
 const steps = [
   { icon: Search, title: "Find Your Agent", desc: "Search by name or follow a verification link sent by your agent." },
@@ -17,6 +18,8 @@ const verifyItems = [
 ];
 
 export default function Landing() {
+  usePageTitle("Underwriter Verified");
+
   return (
     <div className="min-h-screen bg-background font-sans">
       {/* Hero */}
@@ -142,9 +145,13 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t border-border py-8">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-sm font-medium text-foreground">FFL Agent Verification</p>
+          <p className="text-sm font-medium text-foreground">Underwriter Verified</p>
           <p className="mt-2 text-xs text-muted-foreground">
-            © {new Date().getFullYear()} FFL Agent — Helping consumers verify licensed insurance professionals.
+            © {new Date().getFullYear()} Underwriter Verified — Helping consumers verify licensed insurance professionals.
+          </p>
+          <p className="mx-auto mt-3 max-w-xl text-xs leading-relaxed text-muted-foreground">
+            This directory does not send text messages. Each agent profile page, including any SMS
+            program, is operated by the named licensed agent and agency — not by Underwriter Verified.
           </p>
         </div>
       </footer>

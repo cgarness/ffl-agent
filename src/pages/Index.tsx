@@ -1,7 +1,8 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { useAgentProfile } from "@/hooks/useAgentProfile";
 import { useAgentData } from "@/contexts/AgentDataContext";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import TrustBar from "@/components/TrustBar";
 import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
@@ -19,6 +20,13 @@ export default function Index() {
   const { agencySlug, agentSlug } = useParams<{ agencySlug: string; agentSlug: string }>();
   const { data: agent, isLoading, error } = useAgentProfile(agencySlug, agentSlug);
   const { updateData } = useAgentData();
+  usePageTitle(
+    isLoading
+      ? "Loading profile"
+      : agent
+        ? `${agent.name} | ${agent.agency || "Licensed Life Insurance Agent"}`
+        : "Agent Not Found"
+  );
 
   // Populate context so all child components read from it
   useEffect(() => {

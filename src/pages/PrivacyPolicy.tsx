@@ -1,16 +1,44 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import { useLegalBrand } from "@/hooks/useLegalBrand";
+import { useLegalPaths } from "@/hooks/useLegalPaths";
+import { usePageTitle } from "@/hooks/usePageTitle";
+import { SMS_NON_SHARING_STATEMENT } from "@/lib/a2pBrand";
+import BrandContactBlock from "@/components/BrandContactBlock";
 
 const PrivacyPolicy: React.FC = () => {
+  const { brand, scoped, profileHref, isLoading, notFound } = useLegalBrand();
+  const { terms } = useLegalPaths();
+  usePageTitle(`Privacy Policy | ${brand.agency}`);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 text-center">
+        <h1 className="text-2xl font-bold text-foreground">Agent Not Found</h1>
+        <p className="text-muted-foreground">The privacy policy you're looking for doesn't exist.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-4xl mx-auto bg-card border border-border rounded-2xl p-6 sm:p-10 space-y-8">
         <header className="space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">Privacy Policy for CG Financial</h1>
+          <h1 className="text-3xl font-bold text-foreground">Privacy Policy for {brand.agency}</h1>
           <p className="text-sm text-muted-foreground">Effective Date: April 15, 2026</p>
         </header>
 
         <p className="text-sm text-muted-foreground leading-relaxed">
-          CG Financial ("we," "us," or "our"), operated by Christopher Garness, is committed to
+          {brand.agency} ("we," "us," or "our"), operated by {brand.name}, is committed to
           protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard
           your personal information when you interact with us through our website, forms, phone,
           email, and SMS communications.
@@ -44,16 +72,19 @@ const PrivacyPolicy: React.FC = () => {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-foreground">3. SMS Messaging &amp; A2P Compliance</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            By providing your phone number and opting in, you consent to receive <strong>recurring automated marketing and informational text messages (SMS/MMS)</strong> from CG Financial. These may include appointment reminders, policy updates, quote follow-ups, and promotional offers.
+            By providing your phone number and opting in, you consent to receive{" "}
+            <strong>recurring automated marketing and informational text messages (SMS/MMS)</strong> from{" "}
+            {brand.agency}. These may include appointment reminders, policy updates, quote follow-ups,
+            and promotional offers.
           </p>
           <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
             <li>Message frequency varies</li>
             <li>Message and data rates may apply</li>
             <li>To opt out at any time, reply <strong>STOP</strong></li>
             <li>
-              For assistance, reply <strong>HELP</strong> or contact us at 909-775-6963 or{" "}
-              <a href="mailto:chris@fflagent.com" className="underline underline-offset-2 hover:text-accent">
-                chris@fflagent.com
+              For assistance, reply <strong>HELP</strong> or contact us at {brand.phone} or{" "}
+              <a href={`mailto:${brand.email}`} className="underline underline-offset-2 hover:text-accent">
+                {brand.email}
               </a>
             </li>
           </ul>
@@ -66,10 +97,7 @@ const PrivacyPolicy: React.FC = () => {
             communications.
           </p>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            <strong>
-              No mobile opt-in data or consent will be shared with third parties or affiliates for
-              marketing or promotional purposes.
-            </strong>
+            <strong>{SMS_NON_SHARING_STATEMENT}</strong>
             {" "}All the above categories exclude text messaging originator opt-in data and consent;
             this information will not be shared with any third parties.
           </p>
@@ -123,10 +151,10 @@ const PrivacyPolicy: React.FC = () => {
           <p className="text-sm text-muted-foreground">We do not sell your personal information.</p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             To exercise your rights, contact us at{" "}
-            <a href="mailto:chris@fflagent.com" className="underline underline-offset-2 hover:text-accent">
-              chris@fflagent.com
+            <a href={`mailto:${brand.email}`} className="underline underline-offset-2 hover:text-accent">
+              {brand.email}
             </a>{" "}
-            or 909-775-6963.
+            or {brand.phone}.
           </p>
         </section>
 
@@ -140,20 +168,19 @@ const PrivacyPolicy: React.FC = () => {
 
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-foreground">9. Contact Information</h2>
-          <div className="text-sm text-muted-foreground leading-relaxed">
-            <p>CG Financial</p>
-            <p>Christopher Garness</p>
-            <p>6768 Regal Park Dr</p>
-            <p>Fontana, CA 92336</p>
-            <p className="mt-2">Phone: 909-775-6963</p>
-            <p>
-              Email:{" "}
-              <a href="mailto:chris@fflagent.com" className="underline underline-offset-2 hover:text-accent">
-                chris@fflagent.com
-              </a>
-            </p>
-          </div>
+          <BrandContactBlock brand={brand} />
         </section>
+
+        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+          {scoped && (
+            <Link to={profileHref} className="underline underline-offset-2 hover:text-accent">
+              Back to profile
+            </Link>
+          )}
+          <Link to={terms} className="underline underline-offset-2 hover:text-accent">
+            Terms and Conditions
+          </Link>
+        </div>
       </div>
     </div>
   );
