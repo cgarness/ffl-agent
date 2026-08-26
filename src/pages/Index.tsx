@@ -21,7 +21,11 @@ export default function Index() {
   const { data: agent, isLoading, error } = useAgentProfile(agencySlug, agentSlug);
   const { updateData } = useAgentData();
   usePageTitle(
-    agent ? `${agent.name} | ${agent.agency || "Licensed Life Insurance Agent"}` : "Agent Profile"
+    isLoading
+      ? "Loading profile"
+      : agent
+        ? `${agent.name} | ${agent.agency || "Licensed Life Insurance Agent"}`
+        : "Agent Not Found"
   );
 
   // Populate context so all child components read from it
