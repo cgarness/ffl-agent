@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAgentData } from "@/contexts/AgentDataContext";
 import { useLegalPaths } from "@/hooks/useLegalPaths";
-import { SMS_NON_SHARING_STATEMENT } from "@/lib/a2pBrand";
+import { CARRIER_LIABILITY_STATEMENT, SMS_NON_SHARING_STATEMENT } from "@/lib/a2pBrand";
 
 export default function LegalSection() {
   const { data } = useAgentData();
@@ -17,7 +17,8 @@ export default function LegalSection() {
             {sender} may send recurring automated marketing and informational text messages (SMS/MMS),
             which may include appointment reminders, policy updates, quote follow-ups, and
             promotional offers. Message frequency varies. Message and data rates may apply. Consent
-            is not a condition of purchase. Reply STOP to opt out. Reply HELP for help.
+            is not a condition of purchase. Reply <strong>STOP</strong> to opt out. Reply{" "}
+            <strong>HELP</strong> for help. {CARRIER_LIABILITY_STATEMENT}
           </p>
           <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
             <strong>{SMS_NON_SHARING_STATEMENT}</strong>

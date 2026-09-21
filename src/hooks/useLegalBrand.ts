@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useAgentProfile } from "@/hooks/useAgentProfile";
-import { DEFAULT_BRAND } from "@/lib/a2pBrand";
+import { DEFAULT_BRAND, normalizeBrandText } from "@/lib/a2pBrand";
 
 export type LegalBrand = {
   name: string;
@@ -18,10 +18,10 @@ export function useLegalBrand() {
 
   const brand: LegalBrand = query.data
     ? {
-        name: query.data.name || DEFAULT_BRAND.name,
-        agency: query.data.agency || DEFAULT_BRAND.agency,
-        phone: query.data.phone || DEFAULT_BRAND.phone,
-        email: query.data.email || DEFAULT_BRAND.email,
+        name: normalizeBrandText(query.data.name) || DEFAULT_BRAND.name,
+        agency: normalizeBrandText(query.data.agency) || DEFAULT_BRAND.agency,
+        phone: normalizeBrandText(query.data.phone) || DEFAULT_BRAND.phone,
+        email: normalizeBrandText(query.data.email) || DEFAULT_BRAND.email,
         addressLine1: DEFAULT_BRAND.addressLine1,
         addressLine2: DEFAULT_BRAND.addressLine2,
       }

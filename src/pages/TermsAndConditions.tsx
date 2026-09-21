@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useLegalBrand } from "@/hooks/useLegalBrand";
 import { useLegalPaths } from "@/hooks/useLegalPaths";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { SMS_NON_SHARING_STATEMENT } from "@/lib/a2pBrand";
+import { CARRIER_LIABILITY_STATEMENT, SMS_NON_SHARING_STATEMENT } from "@/lib/a2pBrand";
 import BrandContactBlock from "@/components/BrandContactBlock";
 
 const TermsAndConditions: React.FC = () => {
@@ -66,10 +66,11 @@ const TermsAndConditions: React.FC = () => {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-foreground">3. SMS Communications</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            By providing your phone number and optionally consenting to SMS communications, you
-            agree to receive recurring text messages including appointment reminders, insurance
-            updates, policy information, quote follow-ups, and promotional offers from {brand.name}{" "}
-            and {brand.agency}.
+            The <strong>{brand.agency} Messaging Program</strong> is operated by {brand.name} and{" "}
+            {brand.agency}. By providing your phone number and optionally consenting to SMS
+            communications, you agree to receive recurring text messages including appointment
+            reminders, insurance updates, policy information, quote follow-ups, and promotional
+            offers from {brand.name} and {brand.agency}.
           </p>
           <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
             <li>Message frequency may vary</li>
@@ -77,7 +78,15 @@ const TermsAndConditions: React.FC = () => {
             <li>Reply <strong>STOP</strong> at any time to opt out</li>
             <li>Reply <strong>HELP</strong> for assistance</li>
             <li>Consent is not a condition of purchase</li>
+            <li>{CARRIER_LIABILITY_STATEMENT}</li>
           </ul>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            For customer support, contact us at {brand.phone} or{" "}
+            <a href={`mailto:${brand.email}`} className="underline underline-offset-2 hover:text-accent">
+              {brand.email}
+            </a>
+            . Full contact details are listed below.
+          </p>
           <p className="text-sm text-muted-foreground leading-relaxed">
             <strong>{SMS_NON_SHARING_STATEMENT}</strong>
           </p>

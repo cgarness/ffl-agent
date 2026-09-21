@@ -10,7 +10,16 @@ import ContactSection from "@/components/ContactSection";
 import Landing from "@/pages/Landing";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import { useLegalPaths } from "@/hooks/useLegalPaths";
-import { SMS_NON_SHARING_STATEMENT } from "@/lib/a2pBrand";
+import {
+  A2P_OPT_IN_URL,
+  A2P_PRIVACY_URL,
+  A2P_SITE_ORIGIN,
+  A2P_TERMS_URL,
+  A2P_WEBSITE_URL,
+  CARRIER_LIABILITY_STATEMENT,
+  SMS_NON_SHARING_STATEMENT,
+  normalizeBrandText,
+} from "@/lib/a2pBrand";
 
 function renderWithProviders(ui: ReactElement, path = "/") {
   const client = new QueryClient({
@@ -37,6 +46,7 @@ describe("A2P campaign surfaces", () => {
     expect(screen.getByText(/STOP/)).toBeInTheDocument();
     expect(screen.getByText(/HELP/)).toBeInTheDocument();
     expect(screen.getByText(/consent is not required/i)).toBeInTheDocument();
+    expect(document.body.textContent).toMatch(/Carriers are not liable for any delayed or undelivered messages/i);
     expect(screen.getByRole("link", { name: /privacy policy/i })).toHaveAttribute(
       "href",
       "/privacy-policy"
@@ -52,7 +62,8 @@ describe("A2P campaign surfaces", () => {
 
     expect(screen.getByRole("link", { name: /privacy policy/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /terms and conditions/i })).toBeInTheDocument();
-    expect(screen.getByText(/reply STOP to opt out/i)).toBeInTheDocument();
+    expect(document.body.textContent).toMatch(/Reply\s*STOP\s*to opt out/i);
+    expect(document.body.textContent).toMatch(/Carriers are not liable/i);
   });
 
   it("does not collect a phone number on the contact form", () => {
@@ -86,6 +97,7 @@ describe("A2P campaign surfaces", () => {
     expect(screen.getByRole("heading", { name: /privacy policy for cg financial/i })).toBeInTheDocument();
     expect(screen.getByText(SMS_NON_SHARING_STATEMENT)).toBeInTheDocument();
     expect(screen.getByText(/message frequency varies/i)).toBeInTheDocument();
+    expect(document.body.textContent).toMatch(/Carriers are not liable for any delayed or undelivered messages/i);
   });
 
   it("scopes legal URLs to the agent profile path", () => {
@@ -114,4 +126,30 @@ describe("A2P campaign surfaces", () => {
       screen.getByText("/cg-financial/christopher-garness/terms-and-conditions")
     ).toBeInTheDocument();
   });
+  it("keeps required SMS terms on the terms page", async () => {
+    const { default: TermsAndConditions } = await import("@/pages/TermsAndConditions");
+    renderWithProviders(<TermsAndConditions />);
+
+    expect(
+      screen.getByRole("heading", { name: /terms and conditions for cg financial/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText(/CG Financial Messaging Program/i)).toBeInTheDocument();
+    expect(document.body.textContent).toMatch(/Carriers are not liable for any delayed or undelivered messages/i);
+    expect(screen.getByText(SMS_NON_SHARING_STATEMENT)).toBeInTheDocument();
+  });
+
+  it("publishes the custom domain URLs for A2P registration", () => {
+    expect(A2P_SITE_ORIGIN).toBe("https://www.underwriterverified.com");
+    expect(A2P_WEBSITE_URL).toBe(
+      "https://www.underwriterverified.com/cg-financial/christopher-garness"
+    );
+    expect(A2P_OPT_IN_URL).toBe("https://www.underwriterverified.com/sms-opt-in");
+    expect(A2P_PRIVACY_URL).toContain("/privacy-policy");
+    expect(A2P_TERMS_URL).toContain("/terms-and-conditions");
+  });
+
+  it("normalizes double spaces in brand names from the database", () => {
+    expect(normalizeBrandText("Christopher  Garness")).toBe("Christopher Garness");
+  });
+
 });
