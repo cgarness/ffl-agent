@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { AgentData } from "@/contexts/AgentDataContext";
+import { normalizeBrandText } from "@/lib/a2pBrand";
 
 export function useAgentProfile(agencySlug: string | undefined, agentSlug: string | undefined) {
   return useQuery({
@@ -19,12 +20,12 @@ export function useAgentProfile(agencySlug: string | undefined, agentSlug: strin
       if (!data) throw new Error("Agent not found");
 
       return {
-        name: data.name,
-        firstName: data.first_name,
-        lastName: data.last_name,
-        phone: data.phone,
-        email: data.email,
-        agency: data.agency,
+        name: normalizeBrandText(data.name),
+        firstName: normalizeBrandText(data.first_name),
+        lastName: normalizeBrandText(data.last_name),
+        phone: normalizeBrandText(data.phone),
+        email: normalizeBrandText(data.email),
+        agency: normalizeBrandText(data.agency),
         npn: data.npn,
         bio: data.bio,
         shortBio: data.short_bio,

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { CARRIER_LIABILITY_STATEMENT } from "@/lib/a2pBrand";
 
 interface SmsConsentCopyProps {
   agentName: string;
@@ -22,7 +23,7 @@ export default function SmsConsentCopy({
         <strong>{agentName}</strong> and <strong>{agencyName}</strong> at the phone number provided
         above, including for marketing purposes. Consent is not required to receive a quote or book a
         call. Message and data rates may apply. Message frequency may vary. I may revoke this consent
-        at any time by replying STOP to any message or by contacting us directly. Reply HELP for help.
+        at any time by replying STOP to any message or by contacting us directly. Reply HELP for help. {CARRIER_LIABILITY_STATEMENT}
       </p>
       <p className="text-xs text-muted-foreground">
         I have read and agree to the{" "}

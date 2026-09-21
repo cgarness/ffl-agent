@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useLegalBrand } from "@/hooks/useLegalBrand";
 import { useLegalPaths } from "@/hooks/useLegalPaths";
 import { usePageTitle } from "@/hooks/usePageTitle";
-import { SMS_NON_SHARING_STATEMENT } from "@/lib/a2pBrand";
+import { CARRIER_LIABILITY_STATEMENT, SMS_NON_SHARING_STATEMENT } from "@/lib/a2pBrand";
 import BrandContactBlock from "@/components/BrandContactBlock";
 
 const PrivacyPolicy: React.FC = () => {
@@ -87,6 +87,7 @@ const PrivacyPolicy: React.FC = () => {
                 {brand.email}
               </a>
             </li>
+            <li>{CARRIER_LIABILITY_STATEMENT}</li>
           </ul>
           <p className="text-sm text-muted-foreground leading-relaxed">
             We obtain <strong>explicit consent</strong> before sending SMS messages, and consent

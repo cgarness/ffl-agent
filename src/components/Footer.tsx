@@ -1,5 +1,6 @@
 import { useAgentData } from "@/contexts/AgentDataContext";
 import LegalNavLinks from "@/components/LegalNavLinks";
+import { CARRIER_LIABILITY_STATEMENT } from "@/lib/a2pBrand";
 
 export default function Footer() {
   const { data } = useAgentData();
@@ -17,8 +18,9 @@ export default function Footer() {
 
         <p className="mx-auto mt-4 max-w-2xl text-xs leading-relaxed text-muted-foreground">
           {sender} may send recurring automated marketing and informational text messages. Message
-          frequency varies. Message and data rates may apply. Reply STOP to opt out. Reply HELP for
-          help. Consent is not a condition of purchase.
+          frequency varies. Message and data rates may apply. Reply <strong>STOP</strong> to opt out.
+          Reply <strong>HELP</strong> for help. Consent is not a condition of purchase.{" "}
+          {CARRIER_LIABILITY_STATEMENT}
         </p>
 
         <p className="mx-auto mt-6 max-w-2xl text-xs leading-relaxed text-muted-foreground">
