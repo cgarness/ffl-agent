@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Save, Plus, Trash2, ArrowLeft, Check, Upload, Sparkles, Loader2, LogOut, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import IntakeRequestsPanel from "@/components/IntakeRequestsPanel";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA",
@@ -307,6 +308,7 @@ export default function Admin() {
         </div>
       ) : (
         <div className="container max-w-2xl py-10 space-y-10">
+          <IntakeRequestsPanel />
           {/* Personal Info */}
           <Section title="Personal Information">
             <div className="grid grid-cols-2 gap-4">

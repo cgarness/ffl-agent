@@ -25,8 +25,9 @@ export default function ContactSection() {
               </a>
             </Button>
             <p className="mt-4 max-w-sm text-sm text-muted-foreground">
-              Want a call or text instead? Use the quote form above and check the optional SMS box.
-              This message form does not opt you in to text messages.
+              For a quote or a call request, use the quote form above or the booking page. Those
+              forms have separate optional SMS boxes that start unchecked. This message form does not
+              opt you in to text messages and does not submit a request.
             </p>
           </div>
 
@@ -60,7 +61,7 @@ function ContactForm() {
         className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       />
       <p className="text-xs text-muted-foreground">
-        Submitting this form does not subscribe you to SMS. Reply STOP on any text to opt out.
+        This form does not opt you in to text messages and does not save a request. Reply STOP on any text to opt out.
       </p>
       <Button variant="hero" size="lg" type="submit" className="w-full">
         <Send size={16} />
