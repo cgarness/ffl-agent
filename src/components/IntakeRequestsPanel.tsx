@@ -1,126 +1,96 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-
-interface IntakeRow {
-  id: string;
-  created_at: string;
-  form_source: string;
-  page_path: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone_display: string;
-  state: string | null;
-  informational: string;
-  marketing: string;
-  disclosureVersion: string;
-  suppressed: boolean;
-}
+import { Loader2, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useIntakeRequests, type IntakeRow } from "@/hooks/useIntakeRequests";
 
 export default function IntakeRequestsPanel() {
-  const [rows, setRows] = useState<IntakeRow[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      const { data: requests, error: requestError } = await supabase
-        .from("intake_requests")
-        .select("id, created_at, form_source, page_path, first_name, last_name, email, phone_display, state")
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (requestError) {
-        if (!cancelled) {
-          setError("Saved requests are not available yet. Apply the intake migration, then sign in as the agent who owns this profile.");
-        }
-        return;
-      }
-
-      const ids = (requests ?? []).map((row) => row.id);
-      const eventsByRequest = new Map<string, Array<{
-        purpose: string;
-        choice: string;
-        disclosure_version_id: string;
-        suppressed_at_capture: boolean;
-      }>>();
-
-      if (ids.length > 0) {
-        const { data: events, error: eventError } = await supabase
-          .from("sms_consent_events")
-          .select("intake_request_id, purpose, choice, disclosure_version_id, suppressed_at_capture")
-          .in("intake_request_id", ids);
-
-        if (eventError) {
-          if (!cancelled) setError("Consent evidence could not be loaded.");
-          return;
-        }
-
-        for (const event of events ?? []) {
-          const list = eventsByRequest.get(event.intake_request_id) ?? [];
-          list.push(event);
-          eventsByRequest.set(event.intake_request_id, list);
-        }
-      }
-
-      if (cancelled) return;
-      setRows(
-        (requests ?? []).map((row) => {
-          const events = eventsByRequest.get(row.id) ?? [];
-          const informational = events.find((event) => event.purpose === "informational");
-          const marketing = events.find((event) => event.purpose === "marketing");
-          return {
-            ...row,
-            informational: informational?.choice ?? "missing",
-            marketing: marketing?.choice ?? "missing",
-            disclosureVersion: informational?.disclosure_version_id ?? marketing?.disclosure_version_id ?? "",
-            suppressed: events.some((event) => event.suppressed_at_capture),
-          };
-        }),
-      );
-    }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { rows, status, hasMore, refresh, loadMore, retry } = useIntakeRequests();
+  const busy = status === "loading" || status === "loading-more";
 
   return (
-    <section className="space-y-4">
-      <div>
-        <h2 className="text-xl font-bold text-foreground">Quote and call requests</h2>
-        <div className="mt-1.5 h-0.5 w-10 rounded-full bg-accent" />
+    <section className="space-y-4" aria-labelledby="intake-heading">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 id="intake-heading" className="text-xl font-bold text-foreground">Quote and call requests</h2>
+          <div className="mt-1.5 h-0.5 w-10 rounded-full bg-accent" />
+        </div>
+        <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={busy}>
+          <RefreshCw size={14} className={status === "loading" ? "animate-spin" : ""} />
+          Refresh
+        </Button>
       </div>
       <p className="text-sm text-muted-foreground">
-        Requests saved from your public pages appear here for the signed-in owner of this profile.
-        This screen does not send texts. Delivery into AgentFlow is not connected.
+        Requests saved from your public pages, newest first. Only the signed-in owner of this
+        profile can see them. The SMS choices shown are what the visitor selected when the request
+        was saved. They are historical evidence, not proof that a text may be sent today: a later
+        STOP, another submission, or a provider block can override an earlier choice. This screen
+        does not send texts, and delivery into AgentFlow is not connected.
       </p>
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      {rows && rows.length === 0 && (
+
+      {status === "loading" && (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> Loading requests…
+        </p>
+      )}
+
+      {status === "error" && (
+        <div role="alert" className="space-y-2 rounded-xl border border-destructive/40 p-4 text-sm">
+          <p className="text-destructive">
+            Requests could not be loaded. If the intake migration has not been applied yet, or you
+            are not signed in as the owner of this profile, nothing will appear here.
+          </p>
+          <Button variant="outline" size="sm" onClick={() => void retry()}>Try again</Button>
+        </div>
+      )}
+
+      {status === "ready" && rows.length === 0 && (
         <p className="text-sm text-muted-foreground">No quote or call requests yet.</p>
       )}
-      <div className="space-y-3">
-        {rows?.map((row) => (
-          <article key={row.id} className="space-y-1 rounded-xl border border-border p-4 text-sm">
-            <p className="font-medium text-foreground">
-              {row.first_name} {row.last_name} · {row.form_source === "call_request" ? "Call request" : "Quote"}
-            </p>
-            <p className="text-muted-foreground">
-              {row.phone_display} · {row.email}
-              {row.state ? ` · ${row.state}` : ""}
-            </p>
-            <p className="text-muted-foreground">{new Date(row.created_at).toLocaleString()} · {row.page_path}</p>
-            <p className="text-muted-foreground">
-              Informational SMS: {row.informational}. Marketing SMS: {row.marketing}. Version: {row.disclosureVersion || "n/a"}.
-            </p>
-            {row.suppressed && (
-              <p className="text-muted-foreground">A prior opt-out was already on file. This request did not remove it.</p>
-            )}
-          </article>
+
+      <ul className="space-y-3">
+        {rows.map((row) => (
+          <IntakeRowCard key={row.id} row={row} />
         ))}
-      </div>
+      </ul>
+
+      {rows.length > 0 && (
+        <div className="flex items-center gap-3">
+          {hasMore ? (
+            <Button variant="outline" size="sm" onClick={() => void loadMore()} disabled={busy}>
+              {status === "loading-more" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Load older requests
+            </Button>
+          ) : (
+            <p className="text-xs text-muted-foreground">No older requests.</p>
+          )}
+          <p className="text-xs text-muted-foreground">{rows.length} shown</p>
+        </div>
+      )}
     </section>
+  );
+}
+
+function IntakeRowCard({ row }: { row: IntakeRow }) {
+  return (
+    <li className="space-y-1 rounded-xl border border-border p-4 text-sm">
+      <p className="font-medium text-foreground">
+        {row.first_name} {row.last_name} · {row.form_source === "call_request" ? "Call request" : "Quote"}
+      </p>
+      <p className="text-muted-foreground">
+        {row.phone_display} · {row.email}
+        {row.state ? ` · ${row.state}` : ""}
+      </p>
+      <p className="text-muted-foreground">
+        {new Date(row.created_at).toLocaleString()} · {row.page_path}
+      </p>
+      <p className="text-muted-foreground">
+        Submitted choices — informational SMS: {row.informational}; marketing SMS: {row.marketing};
+        disclosure version {row.disclosureVersion || "n/a"}.
+      </p>
+      {row.suppressedAtCapture && (
+        <p className="text-muted-foreground">
+          An opt-out was already on file when this was saved. This request did not remove it.
+        </p>
+      )}
+    </li>
   );
 }
