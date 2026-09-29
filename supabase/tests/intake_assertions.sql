@@ -1,8 +1,5 @@
 -- Throwaway assertions for the intake migration. Not a production script.
-
-INSERT INTO public.agents (id, slug, agency_slug, name, agency, user_id) VALUES
-  ('11111111-1111-1111-1111-111111111111', 'christopher-garness', 'cg-financial', 'Christopher Garness', 'CG Financial', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
-  ('22222222-2222-2222-2222-222222222222', 'other-agent', 'other-agency', 'Other Agent', 'Other Agency', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb');
+-- Expects the two agent rows seeded by agents_before_fix.sql.
 
 CREATE OR REPLACE FUNCTION public._intake_assert(cond boolean, message text)
 RETURNS void
@@ -225,8 +222,6 @@ Terms and Conditions: https://www.underwriterverified.com/cg-financial/christoph
       PERFORM public._intake_assert(SQLERRM = 'consent_evidence_is_append_only', SQLERRM);
   END;
 END $$;
-
-GRANT SELECT ON public.agents TO authenticated;
 
 DO $$
 BEGIN

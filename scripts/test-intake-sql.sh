@@ -1,55 +1,58 @@
 #!/usr/bin/env bash
-# Runs the intake migration against a throwaway local database.
-# Does not connect to the hosted Supabase project.
+# Applies every migration in order to a disposable local database, reproduces the
+# inherited anonymous agent-write exposure before the corrective migration, then
+# checks ownership, intake, consent, and STOP behaviour after it.
+# Local Unix-socket connection only. Never points at the hosted project.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DB_NAME="ffl_intake_test"
+FIX_MIGRATION="20260929203000_lock_agent_ownership.sql"
+
+for var in PGHOST PGHOSTADDR PGPORT PGUSER PGPASSWORD PGDATABASE PGSERVICE DATABASE_URL SUPABASE_DB_URL POSTGRES_URL; do
+  if [ -n "${!var:-}" ]; then
+    echo "REFUSED: $var is set. This harness only runs against a local disposable database."
+    exit 3
+  fi
+done
 
 if ! command -v psql >/dev/null 2>&1; then
   echo "BLOCKED: psql is not installed, so the database tests were not executed."
   exit 2
 fi
 
-PSQL=(psql)
-if sudo -u postgres psql -c "SELECT 1" >/dev/null 2>&1; then
-  PSQL=(sudo -u postgres psql)
-  sudo -u postgres dropdb --if-exists "$DB_NAME"
-  sudo -u postgres createdb "$DB_NAME"
-else
-  dropdb --if-exists "$DB_NAME"
-  createdb "$DB_NAME"
+if ! sudo -u postgres psql -h /var/run/postgresql -c "SELECT 1" >/dev/null 2>&1; then
+  echo "BLOCKED: no local PostgreSQL server on /var/run/postgresql."
+  exit 2
 fi
 
-"${PSQL[@]}" -d "$DB_NAME" -v ON_ERROR_STOP=1 -f - <<'SQL'
-CREATE SCHEMA IF NOT EXISTS auth;
-CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid
-LANGUAGE sql STABLE AS $$
-  SELECT NULLIF(current_setting('app.current_user_id', true), '')::uuid;
-$$;
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
-    CREATE ROLE anon NOLOGIN;
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
-    CREATE ROLE authenticated NOLOGIN;
-  END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
-    CREATE ROLE service_role NOLOGIN BYPASSRLS;
-  END IF;
-END $$;
-CREATE TABLE public.agents (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug text NOT NULL,
-  agency_slug text NOT NULL,
-  name text NOT NULL,
-  agency text NOT NULL DEFAULT '',
-  user_id uuid,
-  UNIQUE (agency_slug, slug)
-);
-SQL
+PSQL=(sudo -u postgres psql -h /var/run/postgresql -v ON_ERROR_STOP=1 -q)
+sudo -u postgres dropdb -h /var/run/postgresql --if-exists "$DB_NAME"
+sudo -u postgres createdb -h /var/run/postgresql "$DB_NAME"
 
-"${PSQL[@]}" -d "$DB_NAME" -v ON_ERROR_STOP=1 -f "$ROOT/supabase/migrations/20260929183000_public_intake_and_sms_consent.sql"
-"${PSQL[@]}" -d "$DB_NAME" -v ON_ERROR_STOP=1 -f "$ROOT/supabase/tests/intake_assertions.sql"
+run() { "${PSQL[@]}" -d "$DB_NAME" "$@"; }
+
+run -f "$ROOT/supabase/tests/harness_bootstrap.sql"
+
+applied_fix=0
+for migration in "$ROOT"/supabase/migrations/*.sql; do
+  name="$(basename "$migration")"
+  if [ "$name" = "$FIX_MIGRATION" ]; then
+    echo "== before fix: $(basename "$FIX_MIGRATION")"
+    run -f "$ROOT/supabase/tests/agents_before_fix.sql"
+    applied_fix=1
+  fi
+  echo "== migrate $name"
+  run -f "$migration"
+done
+
+if [ "$applied_fix" -ne 1 ]; then
+  echo "FAILED: corrective migration $FIX_MIGRATION was not found."
+  exit 1
+fi
+
+echo "== after fix: agent ownership"
+run -f "$ROOT/supabase/tests/agents_after_fix.sql"
+echo "== after fix: intake, consent, suppression"
+run -f "$ROOT/supabase/tests/intake_assertions.sql"
 echo "INTAKE_SQL_OK"
