@@ -84,12 +84,28 @@ describe("A2P campaign surfaces", () => {
     expect(document.body.textContent).toMatch(/Carriers are not liable/i);
   });
 
-  it("does not collect a phone number on the contact form", () => {
-    renderWithProviders(<ContactSection />);
+  it("replaces the inactive message form with links to the real intake flows", () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <AgentDataProvider>
+          <MemoryRouter initialEntries={["/cg-financial/christopher-garness"]}>
+            <Routes>
+              <Route path="/:agencySlug/:agentSlug" element={<ContactSection />} />
+            </Routes>
+          </MemoryRouter>
+        </AgentDataProvider>
+      </QueryClientProvider>
+    );
 
-    expect(document.querySelector('input[type="tel"]')).toBeNull();
+    expect(document.querySelector("form")).toBeNull();
+    expect(document.querySelector("input")).toBeNull();
+    expect(screen.queryByRole("button", { name: /send message/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /go to the quote form/i })).toHaveAttribute("href", "#free-quote");
+    expect(screen.getByRole("link", { name: /open the call request form/i })).toHaveAttribute(
+      "href",
+      "/cg-financial/christopher-garness/bookcall"
+    );
     expect(screen.getAllByText(/does not opt you in to text messages/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/does not save a request/i)).toBeInTheDocument();
   });
 
   it("points to one privacy policy instead of a second conflicting copy", () => {
