@@ -27,7 +27,7 @@ Each implemented route shows two unchecked boxes, the frequency and rate disclos
 3. Call request: https://www.underwriterverified.com/cg-financial/christopher-garness/bookcall and the `/book` alias.  
    Same two boxes. Submitting a call request does not grant SMS permission unless a box is checked, and the confirmation says the call is not yet scheduled.
 
-Not opt-in methods: the contact box on the profile (it does not save and does not collect SMS consent), the calendar link, and a `sms:` link that only opens the visitor’s own texting app.
+Not opt-in methods: the “Get in touch” section on the profile (it now only links to the quote form and the call request form and does not collect anything), the calendar link, and a `sms:` link that only opens the visitor’s own texting app. Following a link never records SMS consent; only the two checkboxes on the quote and call forms do.
 
 Privacy policy: https://www.underwriterverified.com/cg-financial/christopher-garness/privacy-policy  
 Terms: https://www.underwriterverified.com/cg-financial/christopher-garness/terms-and-conditions  
@@ -90,7 +90,32 @@ What is not verified and must not be described as done:
 
 A signed-in agent opens `/agent-admin`. The “Quote and call requests” section reads `intake_requests` and `sms_consent_events` for the agent row whose `user_id` matches that login. Visitors cannot read those tables. One agent cannot read another agent’s rows.
 
+The inbox loads 25 requests at a time, newest first (ties broken by id), with “Load older requests”, Refresh, and a retry button on error. The consent choices shown on each row are the choices recorded at submission time. They are historical evidence, not proof that a text may be sent today; a later STOP, a later submission, or a provider block can override an earlier choice, and only `evaluate_sms_eligibility` answers the send-time question.
+
 AgentFlow delivery is not connected. A saved row in this site’s database is not a lead inside AgentFlow.
+
+## Agent profile ownership (corrected before intake can go live)
+
+Inherited problem: migration `20260416003500_allow_anon_admin_writes.sql` created policies named “Anyone can insert agents (anon)” and “Anyone can update agents (anon)”. Migration `20260506175748` later dropped the un-suffixed names (“Anyone can insert agents” / “Anyone can update agents”) and added owner-only policies, so the anon policies stayed in effect. Because RLS policies are permissive, the anon site key could still create agent profiles and change any profile’s `user_id`, which would let an anonymous visitor take over the profile that the intake tables key on.
+
+Fix: forward migration `20260929203000_lock_agent_ownership.sql`. It does not edit the historical migration. It:
+
+- drops the two anon write policies (and the legacy names, if any still exist);
+- revokes INSERT/UPDATE/DELETE on `public.agents` from `anon` and grants only SELECT, so public profile pages keep working;
+- keeps owner-only INSERT/UPDATE/DELETE policies for `authenticated` (`auth.uid() = user_id`);
+- adds a trigger, `agents_protect_ownership`, that rejects any change to `user_id` made by `anon` or `authenticated`. Reassigning ownership is only possible with the service role, on purpose, by an administrator.
+
+Signup provisioning (`handle_new_agent_user` on `auth.users`) is unchanged and still creates a profile owned by the new login.
+
+What this migration does not do: it does not touch the existing production agent row or its `user_id`. Whether that row belongs to the login Chris actually uses at `/agent-admin` has to be confirmed by Chris after deploy. It must not be reassigned to a guessed account.
+
+Hosted verification: not performed. The Supabase MCP connection for project `rtgmdbqzkwlmplurypyh` could not authenticate during this work, so the live policy list, grants, and the current `user_id` of the production row were not inspected. That check remains open.
+
+## Three different kinds of “ready”
+
+1. Website intake and consent storage — code complete in this branch, verified locally against a disposable PostgreSQL database and a local preview. Not deployed. The hosted database does not yet have the migrations, and the production frontend still shows the old combined checkbox.
+2. Twilio registration readiness — the draft text in this document is ready for Chris to review. Legal name, EIN, structure, volume, account, and non-website opt-in sources are still missing. Nothing has been submitted to Twilio.
+3. Operational readiness to send — not ready. No sender exists in this repository. AgentFlow is a separate system with its own database; no code in this repository connects to it, and no existing mechanism to share consent with it was found here. Do not describe AgentFlow as using this site’s `evaluate_sms_eligibility` until that integration is built and verified.
 
 ## Still needed from Chris
 
