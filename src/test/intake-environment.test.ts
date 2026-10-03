@@ -4,7 +4,7 @@ import { submitPublicIntake, type PublicIntakeSubmission } from "@/lib/submitPub
 import { supabase } from "@/integrations/supabase/client";
 
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { rpc: vi.fn() } }));
-const productionDb = "https://rtgmdbqzkwlmplurypyh.supabase.co";
+const productionDb = "https://jzdzeevjpootbeuniygx.supabase.co";
 
 afterEach(() => { vi.unstubAllEnvs(); vi.clearAllMocks(); });
 
@@ -31,6 +31,12 @@ describe("intake environment safeguard", () => {
     expect(intakeEnvironmentAllowsSubmission("http://127.0.0.1:3001", "http://localhost:8080", "development")).toBe(true);
     expect(intakeEnvironmentAllowsSubmission("https://unknown.supabase.co", "http://localhost:8080", "development")).toBe(false);
     expect(intakeEnvironmentAllowsSubmission("invalid", "http://localhost:8080", "development")).toBe(false);
+  });
+
+  it("refuses the former Lovable backend and AgentFlow after the transfer", () => {
+    for (const host of ["rtgmdbqzkwlmplurypyh", "jncvvsvckxhqgqvkppmj"]) {
+      expect(intakeEnvironmentAllowsSubmission(`https://${host}.supabase.co`, "https://www.underwriterverified.com", "production")).toBe(false);
+    }
   });
 
   it("rejects direct submission before any RPC when a preview points at production", async () => {

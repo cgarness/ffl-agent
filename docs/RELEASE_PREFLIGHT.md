@@ -2,7 +2,7 @@
 
 **Prepared, not released.** Production database changes, profile reassignment, and the production merge/deployment require Chris's approval of the final release after the remaining checks. Twilio submission and its fees require a separate approval. Never send communications or buy numbers during website verification.
 
-**Migration update:** Chris confirmed that the source is Lovable Cloud and authorized a separate Supabase destination. The new **Underwriter Verified** organization (`bmuykmwtwicpltmpenqm`, Free) is created. Follow [SUPABASE_TRANSFER.md](SUPABASE_TRANSFER.md) for the fresh-project restore; the in-place release order below is historical context and must not be applied to AgentFlow or blindly replayed on the source. Direct Lovable inspection now confirms one full agent row, zero auth users/identities, no storage buckets/objects, and owner-only source RLS. The profile snapshot preserves its original headshot and timestamps. Destination project creation, hosted restore, account setup, and cutover are pending.
+**Migration update:** Chris confirmed that the source is Lovable Cloud and authorized a separate Supabase destination. The new **Underwriter Verified** organization (`bmuykmwtwicpltmpenqm`, Free) is created. Follow [SUPABASE_TRANSFER.md](SUPABASE_TRANSFER.md) for the fresh-project restore; the in-place release order below is historical context and must not be applied to AgentFlow or blindly replayed on the source. Direct Lovable inspection now confirms one full agent row, zero auth users/identities, no storage buckets/objects, and owner-only source RLS. The profile snapshot preserves its original headshot and timestamps. Destination project `jzdzeevjpootbeuniygx` is healthy in the separate organization; the original profile and consent schema are restored, auth redirects configured, and the secured Edge Function deployed. Account setup, ownership, the optional AI secret, and cutover remain pending. A final Lovable delta check is required after its query limit resets.
 
 ## Verified targets and current evidence (October 3, 2026)
 
@@ -14,9 +14,9 @@
 | Production main | `f220400ad7867c2f714a8b8eaea2f07f453b5d6e` |
 | Production deployment | `dpl_EaYxadau9ifZd1hhMGZ6RS2Dgrr5`, READY, Git source, production target; aliases include both production domains; Vercel currently marks it a rollback candidate |
 | Vercel project | `underwriterverified` / `prj_8B75x0g4FBYsP2uzSIEeCYHhMJSw`, team `cgarness-projects` / `team_iPboOWpwdIQRwdxmA5GJp5Rq` |
-| Website database | Source Lovable Cloud `rtgmdbqzkwlmplurypyh`; destination will be a new project in organization `bmuykmwtwicpltmpenqm`; **never** AgentFlow's `jncvvsvckxhqgqvkppmj` |
+| Website database | Source Lovable Cloud `rtgmdbqzkwlmplurypyh`; destination `jzdzeevjpootbeuniygx` in organization `bmuykmwtwicpltmpenqm`; **never** AgentFlow's `jncvvsvckxhqgqvkppmj` |
 | Canonical profile | Read-only GET confirmed `e7c2f35a-e215-4e9e-9492-176a344384eb`, `cg-financial/christopher-garness`, `user_id = NULL` |
-| Public intake tables | Read-only GET returned `404 / PGRST205` for `intake_requests` and `sms_consent_events`; this does not prove the entire hosted migration history |
+| Public intake tables | Source has only `agents`; destination now has the reviewed consent schema with zero intake/consent records and RLS enabled |
 | Hosted source access | Lovable connection now exposes the correct source project. Catalog and counts inspected read-only; see SUPABASE_TRANSFER.md. Supabase cannot administer this Lovable-owned source |
 | Preview update | `4ba0824` added the preview submission guard and triggered a new Git-integrated preview. Older `ad9f2a6` bundles still contain the source hostname and intake RPC without that guard |
 | Deployment protection | Vercel reports SSO protection `all_except_custom_domains`; password protection disabled. Protection limits access; it does not isolate database writes |
@@ -25,14 +25,14 @@ Earlier anonymous zero-row PATCH/DELETE probes are historical evidence only. The
 
 ## Prepare destination and identify the owner
 
-1. Complete the new isolated project inside Underwriter Verified (`bmuykmwtwicpltmpenqm`), then verify its organization with Supabase before any write. Do not reconnect to AgentFlow or try to gain direct Supabase access to the Lovable-owned source. Keep source inspection in Lovable.
+1. Destination project `jzdzeevjpootbeuniygx` is restored inside Underwriter Verified (`bmuykmwtwicpltmpenqm`). Verify this identity before any further write. Do not reconnect to AgentFlow or try to gain direct Supabase access to the Lovable-owned source. Keep source inspection in Lovable.
 2. Chris must confirm the email he intends to use for **this website's** `/agent-admin/login`, even if different from AgentFlow. There are currently zero source auth accounts. After account setup, resolve the exact confirmed email in destination `auth.users`; do not use a public contact email or name match as ownership evidence.
 3. Inspect any profile already owned by that account, its full content, and every incoming foreign-key relationship before proposing an assignment. Never delete a signup-created profile automatically. Any conflict requires a specific, data-preserving proposal and approval. Preserve immutable intake/consent records and their original agent links.
 4. The current Vercel connector supports inspection, but does not expose environment editing or deployment retirement. Use an already authorized CLI/API if available; otherwise obtain permission to use the signed-in Vercel dashboard for those operations.
 
 ## Release blockers to resolve before approval
 
-- Destination project and hosted bootstrap verification. The source catalog is now inspected and captured separately.
+- Final source delta check after Lovable's query limit resets. Destination bootstrap, exact profile comparison, RLS/grants, public profile GET, and unauthenticated function rejection are verified.
 - Chris's confirmed login and a reviewed ownership correction including any conflicting profile.
 - Existing unsafe preview deployments retired or otherwise made inaccessible for testing; changing a new build cannot change old bundles.
 - Vercel production settings and final environment values verified before cutover. The new preview at `4ba0824` confirms Git integration now uses repository `underwriter-verified`.
@@ -47,7 +47,7 @@ The UI disables submission, and `submitPublicIntake` independently refuses to ca
 - it is a Vercel production build, served over HTTPS on `www.underwriterverified.com` or `underwriterverified.com`, using the exact website production database; or
 - it is a development build with both the page and API on localhost/loopback (isolated integration testing).
 
-Unknown hosted databases and missing deployment-target configuration fail closed. Verify that Vercel exposes `VERCEL_ENV` at build time. A separate isolated hosted preview target requires a reviewed configuration change; none is provisioned by this release. Production Supabase values are preserved.
+Unknown hosted databases and missing deployment-target configuration fail closed. Verify that Vercel exposes `VERCEL_ENV` at build time. A separate isolated hosted preview target requires a reviewed configuration change; none is provisioned by this release. The draft repository now targets `jzdzeevjpootbeuniygx`. Production deployment/settings are unchanged; verify any Vercel environment overrides before cutover.
 
 **This is a client-side protection against accidental testing, not a database security boundary.** Someone can call a public intake RPC directly. It does not disable profile editor/auth operations, change old deployments, or revoke already-downloaded bundles. Keep testers off old URLs and close their tabs before release. Do not represent CORS, origin checks, or Vercel SSO as database authorization.
 
@@ -61,7 +61,9 @@ Known legacy intake previews to retire before opening the hosted intake RPC:
 
 Re-list deployments at release time, including pagination; cover any additional pre-guard intake builds and their immutable URLs/branch aliases. Do not retire the production deployment or its rollback candidate. Confirm the replacement preview displays the disabled notice without submitting data.
 
-## Exact proposed release order (after approval)
+## Historical in-place release order (superseded by the fresh-project transfer)
+
+The destination already contains the atomic ownership-first bootstrap and secured function follow-up. **Do not rerun steps 1 or 4 below on it.** Use the current remaining steps in `SUPABASE_TRANSFER.md`; this older sequence documents why the ordering mattered.
 
 1. **Inspect, then selectively apply the ownership lock first:** `supabase/migrations/20260929203000_lock_agent_ownership.sql`. It does not depend on the intake tables. Verify its effective permissions immediately. Account for any unexpected hosted policies or inherited PUBLIC grants before proceeding.
 2. **Apply the approved ownership correction** in a guarded transaction, only after the account and any conflict are resolved. Have Chris verify the existing profile under his real login. No profile deletion is part of this plan.
@@ -174,7 +176,7 @@ Re-read effective permissions after closing the RPC. Reopening requires a review
 
 ## Separate readiness decisions
 
-- Website: code and isolated verification prepared; hosted access, ownership, preview retirement, approval, deployment, and live checks remain.
+- Website: destination restored and configured, draft frontend prepared; confirmed login, ownership, source delta check, preview retirement, approval, production cutover, and live owner checks remain.
 - Registration: use `docs/A2P_READINESS.md`; exact business identity, Twilio account/existing resources, volume, and all consent sources remain unconfirmed. No registration submitted.
 - Sending: no website sender, queue, or AgentFlow consent connection exists. Send-time consent/suppression and provider STOP/HELP must be implemented and verified in the actual sender before operation.
 
@@ -183,13 +185,13 @@ Re-read effective permissions after closing the RPC. Reopening requires a review
 | Check | Result |
 |---|---|
 | Dependencies | Existing Bun lock installs with `bun@1.3.10 install --frozen-lockfile`; no dependency or lockfile changed. The older npm lock is out of sync, so `npm ci` is not the verified installation path |
-| Frontend regressions | `npm test -- --reporter=dot`: **45 passed**, including separate consent, failed-save handling, retries, inbox behavior, preview UI disabling, and refusal before any RPC |
+| Frontend/function regressions | `npx vitest run`: **55 passed**, including separate consent, failed-save handling, retries, inbox, preview guards, old-backend refusal, and secured Edge Function boundaries |
 | TypeScript | `npx tsc --noEmit -p tsconfig.app.json`: passed |
 | Changed-file lint / diff | ESLint on the changed TS/TSX/config files and `git diff --check`: passed |
 | Build targets | Both `VERCEL_ENV=preview npm run build` and `VERCEL_ENV=production npm run build`: passed; only existing bundle-size/Browserslist warnings |
 | Release sequence and SQL behavior | All repository migrations, `agents_before_fix.sql`, `agents_after_fix.sql`, and `intake_assertions.sql` executed in isolated PGlite. Ownership lock applied before intake, and the intermediate state explicitly verified no public intake function plus no anonymous profile UPDATE privilege. Passed |
 | Native PostgreSQL / PostgREST repeat | Not repeated here: the executor cannot switch to the local PostgreSQL OS account. PGlite results are not hosted or PostgREST integration results |
 | Browser repeat | Pending: agent-browser could not start its daemon; the Chromium download failed. No new browser-pass claim or screenshot is made |
-| Hosted write / owner login verification | Not run; requires access, confirmed login, final release approval, and deployment |
+| Hosted destination | Both migrations applied; exact profile restored; public GET 200; RLS/grants verified; unauthenticated Edge Function 401; email auth enabled with confirmation required. Real owner login and paid AI call remain unverified |
 
 The older handoff's 25 API / 20 browser passes remain reported prior evidence only. Production stays on `f220400a` until the approved release.

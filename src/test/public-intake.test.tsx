@@ -53,7 +53,7 @@ describe("public intake forms", () => {
   });
 
   it("disables preview submission and explains how to use the live form", () => {
-    vi.stubEnv("VITE_SUPABASE_URL", "https://rtgmdbqzkwlmplurypyh.supabase.co");
+    vi.stubEnv("VITE_SUPABASE_URL", "https://jzdzeevjpootbeuniygx.supabase.co");
     vi.stubEnv("VITE_DEPLOYMENT_ENV", "preview");
     renderCallForm();
     expect(screen.getByRole("button", { name: /request a call/i })).toBeDisabled();
