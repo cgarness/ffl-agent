@@ -10,9 +10,15 @@ CREATE TABLE IF NOT EXISTS auth.users (
   raw_user_meta_data jsonb NOT NULL DEFAULT '{}'::jsonb
 );
 
+-- psql tests set app.current_user_id; PostgREST sets request.jwt.claims, the
+-- same source the hosted auth.uid() reads.
 CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid
 LANGUAGE sql STABLE AS $$
-  SELECT NULLIF(current_setting('app.current_user_id', true), '')::uuid;
+  SELECT COALESCE(
+    NULLIF(current_setting('app.current_user_id', true), ''),
+    NULLIF(current_setting('request.jwt.claim.sub', true), ''),
+    NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub'
+  )::uuid;
 $$;
 
 DO $$
