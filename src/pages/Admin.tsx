@@ -170,32 +170,30 @@ export default function Admin() {
 
     setSavingProfile(true);
     try {
-      const { data: persistedAgent, error } = await supabase
-        .from("agents")
-        .upsert(
-          {
-            id: agentId ?? undefined,
-            user_id: user.id,
-            slug: nextAgentSlug,
-            agency_slug: nextAgencySlug,
-            name: updatedForm.name,
-            first_name: updatedForm.firstName,
-            last_name: updatedForm.lastName,
-            phone: updatedForm.phone,
-            email: updatedForm.email,
-            agency: updatedForm.agency,
-            npn: updatedForm.npn,
-            bio: updatedForm.bio,
-            short_bio: updatedForm.shortBio,
-            headshot_url: updatedForm.headshotUrl,
-            calendar_url: updatedForm.calendarUrl,
-            state_licenses: updatedForm.stateLicenses,
-            testimonials: updatedForm.testimonials,
-          },
-          { onConflict: "user_id" }
-        )
-        .select("id, slug, agency_slug")
-        .single();
+      const profile = {
+        user_id: user.id,
+        slug: nextAgentSlug,
+        agency_slug: nextAgencySlug,
+        name: updatedForm.name,
+        first_name: updatedForm.firstName,
+        last_name: updatedForm.lastName,
+        phone: updatedForm.phone,
+        email: updatedForm.email,
+        agency: updatedForm.agency,
+        npn: updatedForm.npn,
+        bio: updatedForm.bio,
+        short_bio: updatedForm.shortBio,
+        headshot_url: updatedForm.headshotUrl,
+        calendar_url: updatedForm.calendarUrl,
+        state_licenses: updatedForm.stateLicenses,
+        testimonials: updatedForm.testimonials,
+      };
+      // user_id has a partial unique index, which PostgREST cannot infer for
+      // an onConflict upsert. Update the loaded, owned row explicitly.
+      const query = agentId
+        ? supabase.from("agents").update(profile).eq("id", agentId).eq("user_id", user.id)
+        : supabase.from("agents").insert(profile);
+      const { data: persistedAgent, error } = await query.select("id, slug, agency_slug").single();
 
       if (error) throw error;
 
