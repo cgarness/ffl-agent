@@ -77,7 +77,8 @@ for (const filename of migrationFiles) {
 // Quoted JSON plus standard_conforming_strings preserves quotes/backslashes safely.
 const records = JSON.stringify(snapshot.agents).replaceAll("'", "''");
 sql += `\nGRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
-GRANT ALL ON TABLE public.agents TO service_role;
+GRANT ALL ON TABLE public.agents, public.us_state_names, public.sms_disclosure_versions,
+  public.intake_requests, public.sms_consent_events, public.sms_suppressions TO service_role;
 INSERT INTO public.agents SELECT * FROM jsonb_populate_recordset(NULL::public.agents, '${records}'::jsonb);
 DO $verify$
 BEGIN
