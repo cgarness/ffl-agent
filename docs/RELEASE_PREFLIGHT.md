@@ -2,7 +2,7 @@
 
 **Prepared, not released.** Production database changes, profile reassignment, and the production merge/deployment require Chris's approval of the final release after the remaining checks. Twilio submission and its fees require a separate approval. Never send communications or buy numbers during website verification.
 
-**Migration update:** Chris confirmed that the source is Lovable Cloud and authorized a separate Supabase destination. The new **Underwriter Verified** organization (`bmuykmwtwicpltmpenqm`, Free) is created. Follow [SUPABASE_TRANSFER.md](SUPABASE_TRANSFER.md) for the fresh-project restore; the in-place release order below is historical context and must not be applied to AgentFlow or blindly replayed on the source. Direct Lovable inspection now confirms one full agent row, zero auth users/identities, no storage buckets/objects, and owner-only source RLS. The profile snapshot preserves its original headshot and timestamps. Destination project `jzdzeevjpootbeuniygx` is healthy in the separate organization; the original profile and consent schema are restored, auth redirects configured, and the secured Edge Function deployed. Account setup, ownership, the optional AI secret, and cutover remain pending. A final Lovable delta check is required after its query limit resets.
+**Migration update:** Chris confirmed that the source is Lovable Cloud and authorized a separate Supabase destination. The new **Underwriter Verified** organization (`bmuykmwtwicpltmpenqm`, Free) is created. Follow [SUPABASE_TRANSFER.md](SUPABASE_TRANSFER.md) for the fresh-project restore; the in-place release order below is historical context and must not be applied to AgentFlow or blindly replayed on the source. Direct Lovable inspection now confirms one full agent row, zero auth users/identities, no storage buckets/objects, and owner-only source RLS. The profile snapshot preserves its original headshot and timestamps. Destination project `jzdzeevjpootbeuniygx` is healthy in the separate organization; the original profile and consent schema are restored, auth redirects configured, and the secured Edge Function deployed. Account setup, ownership, the optional AI secret, and cutover remain pending. The Lovable query limit reset; a fresh source/destination profile hash and count comparison now matches. Repeat immediately before the eventual cutover.
 
 ## Verified targets and current evidence (October 3, 2026)
 
@@ -32,7 +32,7 @@ Earlier anonymous zero-row PATCH/DELETE probes are historical evidence only. The
 
 ## Release blockers to resolve before approval
 
-- Final source delta check after Lovable's query limit resets. Destination bootstrap, exact profile comparison, RLS/grants, public profile GET, and unauthenticated function rejection are verified.
+- Repeat the source delta check immediately before eventual cutover; the latest live comparison matches. Destination bootstrap, exact profile comparison, RLS/grants, public profile GET, and unauthenticated function rejection are verified.
 - Chris's confirmed login and a reviewed ownership correction including any conflicting profile.
 - Existing unsafe preview deployments retired or otherwise made inaccessible for testing; changing a new build cannot change old bundles.
 - Vercel production settings and final environment values verified before cutover. The new preview at `4ba0824` confirms Git integration now uses repository `underwriter-verified`.
@@ -191,7 +191,7 @@ Re-read effective permissions after closing the RPC. Reopening requires a review
 | Build targets | Both `VERCEL_ENV=preview npm run build` and `VERCEL_ENV=production npm run build`: passed; only existing bundle-size/Browserslist warnings |
 | Release sequence and SQL behavior | All repository migrations, `agents_before_fix.sql`, `agents_after_fix.sql`, and `intake_assertions.sql` executed in isolated PGlite. Ownership lock applied before intake, and the intermediate state explicitly verified no public intake function plus no anonymous profile UPDATE privilege. Passed |
 | Native PostgreSQL / PostgREST repeat | Not repeated here: the executor cannot switch to the local PostgreSQL OS account. PGlite results are not hosted or PostgREST integration results |
-| Browser repeat | Pending: agent-browser could not start its daemon; the Chromium download failed. No new browser-pass claim or screenshot is made |
+| Browser | Cloud Browser verified the new draft preview at application commit `246a3b9`: original profile/photo rendered, both SMS choices unchecked, intake button disabled, preview notice present. No submission or owner login performed |
 | Hosted destination | Both migrations applied; exact profile restored; public GET 200; RLS/grants verified; unauthenticated Edge Function 401; email auth enabled with confirmation required. Real owner login and paid AI call remain unverified |
 
 The older handoff's 25 API / 20 browser passes remain reported prior evidence only. Production stays on `f220400a` until the approved release.
