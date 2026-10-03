@@ -109,11 +109,11 @@ Signup provisioning (`handle_new_agent_user` on `auth.users`) is unchanged and s
 
 What this migration does not do: it does not touch the existing production agent row or its `user_id`. Whether that row belongs to the login Chris actually uses at `/agent-admin` has to be confirmed by Chris after deploy. It must not be reassigned to a guessed account.
 
-Hosted verification: not performed. The Supabase MCP connection for project `rtgmdbqzkwlmplurypyh` could not authenticate during this work, so the live policy list, grants, and the current `user_id` of the production row were not inspected. That check remains open.
+Hosted verification: partial, read-only, with the public site key. The production row `e7c2f35a-e215-4e9e-9492-176a344384eb` (`cg-financial/christopher-garness`) currently has **`user_id = NULL`** — no login owns it — and the anon key still holds update/delete grants on `public.agents`. Neither migration is applied yet. The full policy list and migration history could not be read because authenticated project access (Supabase MCP / CLI) was unavailable. The correction steps, the exact catalog checks, and the release order are in `docs/RELEASE_PREFLIGHT.md`.
 
 ## Three different kinds of “ready”
 
-1. Website intake and consent storage — code complete in this branch, verified locally against a disposable PostgreSQL database and a local preview. Not deployed. The hosted database does not yet have the migrations, and the production frontend still shows the old combined checkbox.
+1. Website intake and consent storage — code complete in this branch, verified locally against a disposable PostgreSQL database behind a real PostgREST process (`scripts/integration-postgrest.sh`) and in a browser against that stack. Not deployed. The hosted database does not yet have the migrations, the canonical profile has no owner, and the production frontend still shows the old combined checkbox.
 2. Twilio registration readiness — the draft text in this document is ready for Chris to review. Legal name, EIN, structure, volume, account, and non-website opt-in sources are still missing. Nothing has been submitted to Twilio.
 3. Operational readiness to send — not ready. No sender exists in this repository. AgentFlow is a separate system with its own database; no code in this repository connects to it, and no existing mechanism to share consent with it was found here. Do not describe AgentFlow as using this site’s `evaluate_sms_eligibility` until that integration is built and verified.
 
