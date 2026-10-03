@@ -1,4 +1,4 @@
-const PRODUCTION_DATABASE_HOST = "rtgmdbqzkwlmplurypyh.supabase.co";
+const PRODUCTION_DATABASE_HOST = "jzdzeevjpootbeuniygx.supabase.co";
 const PRODUCTION_SITE_HOSTS = new Set(["www.underwriterverified.com", "underwriterverified.com"]);
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 

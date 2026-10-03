@@ -245,7 +245,7 @@ export default function Admin() {
       if (error) throw error;
       if (result?.testimonials) {
         setForm((prev) => ({ ...prev, testimonials: result.testimonials }));
-        toast.success("Testimonials generated!");
+        toast.success("Fictional samples generated. Replace them with authentic client feedback before publishing.");
       }
     } catch (err) {
       console.error(err);
@@ -428,7 +428,7 @@ export default function Admin() {
                 className="w-full border-accent text-accent hover:bg-accent/10"
               >
                 {generatingTestimonials ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-                {generatingTestimonials ? "Generating..." : "AI Auto-Generate Testimonials"}
+                {generatingTestimonials ? "Generating..." : "Generate sample testimonials"}
               </Button>
               {form.testimonials.map((t, i) => (
                 <div key={i} className="rounded-xl bg-card p-5 ring-1 ring-border/60 space-y-3">
