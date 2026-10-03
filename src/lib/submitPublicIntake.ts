@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SMS_DISCLOSURE_VERSION_ID } from "@/lib/smsDisclosure";
+import { canSubmitPublicIntake, INTAKE_PREVIEW_MESSAGE } from "@/lib/intakeEnvironment";
 
 export type IntakeFormSource = "quote" | "call_request";
 
@@ -25,6 +26,7 @@ export type IntakeErrorCode =
   | "disclosure_version"
   | "rate_limited"
   | "idempotency_conflict"
+  | "preview_disabled"
   | "save_failed";
 
 const KNOWN_CODES: IntakeErrorCode[] = [
@@ -33,6 +35,7 @@ const KNOWN_CODES: IntakeErrorCode[] = [
   "disclosure_version",
   "rate_limited",
   "idempotency_conflict",
+  "preview_disabled",
 ];
 
 export function intakeErrorCode(error: { message?: string } | null | undefined): IntakeErrorCode {
@@ -42,6 +45,8 @@ export function intakeErrorCode(error: { message?: string } | null | undefined):
 
 export function intakeErrorMessage(code: IntakeErrorCode): string {
   switch (code) {
+    case "preview_disabled":
+      return INTAKE_PREVIEW_MESSAGE;
     case "unknown_agent":
       return "This page is not an active agent profile. Your request was not saved.";
     case "disclosure_version":
@@ -60,6 +65,7 @@ export function intakeErrorMessage(code: IntakeErrorCode): string {
 export async function submitPublicIntake(
   input: PublicIntakeSubmission,
 ): Promise<{ requestId: string; duplicate: boolean }> {
+  if (!canSubmitPublicIntake()) throw new Error("preview_disabled");
   const { data, error } = await supabase.rpc("submit_public_intake", {
     p_idempotency_key: input.idempotencyKey,
     p_form_source: input.formSource,

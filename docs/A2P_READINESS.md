@@ -4,7 +4,7 @@ Review only. Nothing in this change was submitted to Twilio. This is not an appr
 
 Production site: https://www.underwriterverified.com
 
-The website and database in `cgarness/ffl-agent` are this directory site’s own Supabase project (`rtgmdbqzkwlmplurypyh` in `supabase/config.toml`). They are not the AgentFlow database. This repository does not send SMS.
+The website and database in `cgarness/underwriter-verified` are this directory site’s own Supabase project (`rtgmdbqzkwlmplurypyh` in `supabase/config.toml`). They are not the AgentFlow database. This repository does not send SMS.
 
 ## Campaign description
 
@@ -109,11 +109,11 @@ Signup provisioning (`handle_new_agent_user` on `auth.users`) is unchanged and s
 
 What this migration does not do: it does not touch the existing production agent row or its `user_id`. Whether that row belongs to the login Chris actually uses at `/agent-admin` has to be confirmed by Chris after deploy. It must not be reassigned to a guessed account.
 
-Hosted verification: partial, read-only, with the public site key. The production row `e7c2f35a-e215-4e9e-9492-176a344384eb` (`cg-financial/christopher-garness`) currently has **`user_id = NULL`** — no login owns it — and the anon key still holds update/delete grants on `public.agents`. Neither migration is applied yet. The full policy list and migration history could not be read because authenticated project access (Supabase MCP / CLI) was unavailable. The correction steps, the exact catalog checks, and the release order are in `docs/RELEASE_PREFLIGHT.md`.
+Hosted recheck on October 3, 2026: a read-only GET confirms the canonical profile still has **`user_id = NULL`**. The intake and consent tables return `404 / PGRST205`. Full hosted policies, migration history, and auth ownership records remain unverified: the ChatGPT Supabase connection lists only AgentFlow and denies the website project. The anonymous write-grant probes in the previous handoff were not repeated. See `docs/RELEASE_PREFLIGHT.md` for lock-before-intake release order, guarded ownership correction with no automatic profile deletion, and required preview retirement.
 
 ## Three different kinds of “ready”
 
-1. Website intake and consent storage — code complete in this branch, verified locally against a disposable PostgreSQL database behind a real PostgREST process (`scripts/integration-postgrest.sh`) and in a browser against that stack. Not deployed. The hosted database does not yet have the migrations, the canonical profile has no owner, and the production frontend still shows the old combined checkbox.
+1. Website intake and consent storage — implementation is on this branch, not production. Earlier PostgreSQL/PostgREST/browser results are reported in the handoff. Follow-up verification independently passed 45 frontend tests, TypeScript, a preview build, and the ownership/consent SQL assertions in isolated PGlite with ownership locked before intake. This is not a repeat of the hosted or real PostgREST browser checks. Hosted access, ownership, preview retirement, release approval, deployment, and live verification remain pending.
 2. Twilio registration readiness — the draft text in this document is ready for Chris to review. Legal name, EIN, structure, volume, account, and non-website opt-in sources are still missing. Nothing has been submitted to Twilio.
 3. Operational readiness to send — not ready. No sender exists in this repository. AgentFlow is a separate system with its own database; no code in this repository connects to it, and no existing mechanism to share consent with it was found here. Do not describe AgentFlow as using this site’s `evaluate_sms_eligibility` until that integration is built and verified.
 
@@ -130,3 +130,45 @@ Hosted verification: partial, read-only, with the public site key. The productio
 ## Registration route
 
 Not selected. Apply the migration to the site database, confirm the EIN, then decide Standard vs another Brand type from Twilio’s current rules. Do not submit a Brand, Campaign, Trust Hub profile, or phone number as part of this work.
+
+
+## Registration fields and route — pending confirmation
+
+These are proposed values for review, not a completed registration. No Twilio connector was found in the available plugin search, so existing Brand/Campaign/Messaging Service/number resources have not been inspected. Do not create replacements before that inspection.
+
+| Field | Proposed value / missing confirmation |
+|---|---|
+| Customer registration route | Direct Customer if CG Financial uses its own Twilio account; ISV customer flow if AgentFlow registers the agency under its platform. Confirm actual account ownership first |
+| Brand display name | CG Financial — confirm authorized business/DBA use |
+| Legal business name / tax ID / structure | Missing; must match EIN records exactly. An EIN document helps compare entered information but does not itself establish government verification |
+| Industry | Insurance — confirm the provider's available classification |
+| Website | https://www.underwriterverified.com/cg-financial/christopher-garness |
+| Business identity | Direct customer or ISV customer, pending account confirmation |
+| Business address / country | 6768 Regal Park Dr, Fontana, CA 92336, US is the supplied public address; filing address not confirmed |
+| Authorized representative | Christopher Garness; title/position and authority to represent the business must be confirmed |
+| Contact email / phone | chris@fflagent.com / +1 909-775-6963 are public contact values, not yet confirmed filing contacts |
+| Tax-ID jurisdiction / business regions | US proposed; confirm registration country and actual operations |
+| Brand tier | With a US EIN, evaluate Low Volume Standard vs Standard using actual volume/throughput. Do not use the no-tax-ID Sole Proprietor route merely because Chris is an independent agent |
+| Message volume | Missing; collect daily SMS segments/MMS and expected peak sending rate, not just contact count |
+| Campaign use case | Low Volume Mixed or Mixed with Customer Care and Marketing, depending on approved tier and actual use |
+| Campaign description / samples / message flow | Draft sections above; revise to actual sender behavior and only opt-in methods that have been verified live |
+| Privacy / terms | The two scoped production URLs above; verify live before submission |
+| Embedded links / phone numbers | Yes / yes, as shown in sample messages |
+| Opt-in keywords / confirmation reply | No keyword enrollment implemented; leave keyword fields blank unless the sender actually supports a separately reviewed flow |
+| STOP / HELP | Provider settings, replies, and application handling still require inspection and verification; do not mark as complete from website copy |
+| Facebook or other lead sources | Not covered by the website evidence. Confirm each actual source and its separate consent language/evidence before listing it |
+| Twilio account, Brand, Campaign, Messaging Service, numbers | Missing; inspect existing resources and reuse the correct ones where appropriate |
+
+Current official guidance reviewed October 3, 2026:
+
+- [Required business and campaign information](https://www.twilio.com/docs/messaging/compliance/a2p-10dlc/collect-business-info)
+- [Direct Standard / Low-Volume Standard onboarding](https://www.twilio.com/docs/messaging/compliance/a2p-10dlc/direct-standard-onboarding)
+- [ISV customer onboarding](https://www.twilio.com/docs/messaging/compliance/a2p-10dlc/onboarding-isv-api)
+- [Separate marketing and informational consent, error 30913](https://www.twilio.com/docs/api/errors/30913)
+- [Twilio fee schedule](https://help.twilio.com/articles/1260803965530-What-pricing-and-fees-are-associated-with-the-A2P-10DLC-service)
+
+Fee review remains provisional: Twilio's indexed Help Center schedule quotes **$4.50** for Low Volume Standard Brand registration or **$46** for Standard Brand registration. Campaign vetting is separately listed at **$15**; monthly campaign, phone-number, message, and carrier fees are additional. Some Twilio marketing pages still show older $4/$44 figures. Re-read the live account's exact tier, campaign recurring fee, and resubmission terms before presenting the final total for Chris's explicit approval. No fee is authorized by this draft.
+
+## Future AgentFlow integration boundary
+
+This site retains agent/profile-scoped evidence with immutable sender identity, purpose, path, disclosure version/text, and timestamps. The planned AgentFlow wizard is agency-level. Before connecting them, define and verify the agency-to-profile/Brand mapping and suppression scope; do not assume a grant for one sender/profile covers every agent at that agency. This release does not change AgentFlow, its dialer, its database, or provider sending configuration.

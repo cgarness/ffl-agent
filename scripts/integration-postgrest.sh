@@ -44,7 +44,8 @@ sudo -u postgres createdb -h /var/run/postgresql "$DB_NAME"
 
 run -f "$ROOT/supabase/tests/harness_bootstrap.sql"
 for migration in "$ROOT"/supabase/migrations/*.sql; do
-  run -f "$migration" 2>&1 | grep -v "does not exist, skipping" || true
+  # Do not swallow SQL errors: a failed migration must fail this integration run.
+  run -f "$migration"
 done
 run -f "$ROOT/supabase/tests/integration_seed.sql"
 
@@ -52,7 +53,7 @@ run -f "$ROOT/supabase/tests/integration_seed.sql"
 AUTH_PW="local-only-$(head -c 12 /dev/urandom | od -An -tx1 | tr -d ' \n')"
 run -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticator') THEN CREATE ROLE authenticator NOINHERIT LOGIN; END IF; END \$\$;"
 run -c "ALTER ROLE authenticator WITH LOGIN PASSWORD '$AUTH_PW';"
-run -c "GRANT anon, authenticated, service_role TO authenticator;" 2>&1 | grep -v "already been granted" || true
+run -c "GRANT anon, authenticated, service_role TO authenticator;"
 
 JWT_SECRET="$(head -c 48 /dev/urandom | od -An -tx1 | tr -d ' \n')"
 cat > /tmp/ffl-postgrest.conf <<EOF

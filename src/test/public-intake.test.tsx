@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import BookCallForm from "@/components/BookCallForm";
 import SmsOptInForm from "@/components/SmsOptInForm";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +40,7 @@ function fillCallForm() {
 }
 
 describe("public intake forms", () => {
+  afterEach(() => vi.unstubAllEnvs());
   beforeEach(() => {
     vi.mocked(supabase.rpc).mockReset();
     vi.mocked(supabase.rpc).mockResolvedValue(saved as never);
@@ -49,6 +50,15 @@ describe("public intake forms", () => {
     renderCallForm();
     expect(screen.getByRole("checkbox", { name: /informational SMS\/MMS/i })).not.toBeChecked();
     expect(screen.getByRole("checkbox", { name: /marketing SMS\/MMS/i })).not.toBeChecked();
+  });
+
+  it("disables preview submission and explains how to use the live form", () => {
+    vi.stubEnv("VITE_SUPABASE_URL", "https://rtgmdbqzkwlmplurypyh.supabase.co");
+    vi.stubEnv("VITE_DEPLOYMENT_ENV", "preview");
+    renderCallForm();
+    expect(screen.getByRole("button", { name: /request a call/i })).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent(/submissions are disabled on this preview/i);
+    expect(supabase.rpc).not.toHaveBeenCalled();
   });
 
   it("saves a call request with neither SMS box selected", async () => {

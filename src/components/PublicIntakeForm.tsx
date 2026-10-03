@@ -12,6 +12,7 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import IntakeTextField from "@/components/IntakeTextField";
 import { usePublicIntake } from "@/hooks/usePublicIntake";
+import { canSubmitPublicIntake, INTAKE_PREVIEW_MESSAGE } from "@/lib/intakeEnvironment";
 import type { IntakeFormSource } from "@/lib/submitPublicIntake";
 import SmsConsentFields from "@/components/SmsConsentFields";
 import IntakeSuccess from "@/components/IntakeSuccess";
@@ -57,6 +58,7 @@ export default function PublicIntakeForm({
   includeState,
   submitLabel,
 }: PublicIntakeFormProps) {
+  const intakeEnabled = canSubmitPublicIntake();
   const { status, errorMessage, submit } = usePublicIntake({
     formSource,
     pagePath,
@@ -169,7 +171,8 @@ export default function PublicIntakeForm({
             {errorMessage}
           </p>
         )}
-        <Button type="submit" variant="hero" size="xl" className="w-full" disabled={status === "submitting"}>
+        {!intakeEnabled && <p role="status" className="text-sm text-muted-foreground">{INTAKE_PREVIEW_MESSAGE}</p>}
+        <Button type="submit" variant="hero" size="xl" className="w-full" disabled={!intakeEnabled || status === "submitting"}>
           {status === "submitting" ? "Saving..." : submitLabel}
         </Button>
       </form>
