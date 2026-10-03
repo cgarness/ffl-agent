@@ -2,6 +2,8 @@
 
 **Prepared, not released.** Production database changes, profile reassignment, and the production merge/deployment require Chris's approval of the final release after the remaining checks. Twilio submission and its fees require a separate approval. Never send communications or buy numbers during website verification.
 
+**Migration update:** Chris confirmed that the source is Lovable Cloud and authorized a separate Supabase destination. The new **Underwriter Verified** organization (`bmuykmwtwicpltmpenqm`, Free) is created. Follow [SUPABASE_TRANSFER.md](SUPABASE_TRANSFER.md) for the fresh-project restore; the in-place release order below is historical context and must not be applied to AgentFlow or blindly replayed on the source. Direct Lovable inspection now confirms one full agent row, zero auth users/identities, no storage buckets/objects, and owner-only source RLS. The profile snapshot preserves its original headshot and timestamps. Destination project creation, hosted restore, account setup, and cutover are pending.
+
 ## Verified targets and current evidence (October 3, 2026)
 
 | Layer | Verified state |
@@ -12,28 +14,28 @@
 | Production main | `f220400ad7867c2f714a8b8eaea2f07f453b5d6e` |
 | Production deployment | `dpl_EaYxadau9ifZd1hhMGZ6RS2Dgrr5`, READY, Git source, production target; aliases include both production domains; Vercel currently marks it a rollback candidate |
 | Vercel project | `underwriterverified` / `prj_8B75x0g4FBYsP2uzSIEeCYHhMJSw`, team `cgarness-projects` / `team_iPboOWpwdIQRwdxmA5GJp5Rq` |
-| Website database | `rtgmdbqzkwlmplurypyh` only; **not** AgentFlow's `jncvvsvckxhqgqvkppmj` |
+| Website database | Source Lovable Cloud `rtgmdbqzkwlmplurypyh`; destination will be a new project in organization `bmuykmwtwicpltmpenqm`; **never** AgentFlow's `jncvvsvckxhqgqvkppmj` |
 | Canonical profile | Read-only GET confirmed `e7c2f35a-e215-4e9e-9492-176a344384eb`, `cg-financial/christopher-garness`, `user_id = NULL` |
 | Public intake tables | Read-only GET returned `404 / PGRST205` for `intake_requests` and `sms_consent_events`; this does not prove the entire hosted migration history |
-| Hosted admin access | Website project details and migration-list requests denied. The current Supabase connection lists only AgentFlow. No hosted catalog, auth records, or migration history verified in this session |
-| Current preview | `dpl_5t1e8fsQ4g4h7NQUmPMgUpJgzQUK` at `ad9f2a6`; its actual JavaScript bundle contains the website production Supabase hostname and the intake RPC, with no preview guard |
+| Hosted source access | Lovable connection now exposes the correct source project. Catalog and counts inspected read-only; see SUPABASE_TRANSFER.md. Supabase cannot administer this Lovable-owned source |
+| Preview update | `4ba0824` added the preview submission guard and triggered a new Git-integrated preview. Older `ad9f2a6` bundles still contain the source hostname and intake RPC without that guard |
 | Deployment protection | Vercel reports SSO protection `all_except_custom_domains`; password protection disabled. Protection limits access; it does not isolate database writes |
 
 Earlier anonymous zero-row PATCH/DELETE probes are historical evidence only. They were not repeated. No profile takeover tests, production submissions, or production mutations were made during this preparation.
 
-## Restore access and identify the owner
+## Prepare destination and identify the owner
 
-1. In ChatGPT's Supabase connection settings, reconnect using the Supabase account and organization that actually contain project `rtgmdbqzkwlmplurypyh`. The present account/authorization exposes only AgentFlow. If the project is absent at https://supabase.com/dashboard/project/rtgmdbqzkwlmplurypyh, its owner must grant project/organization access first. Do not paste passwords or tokens into chat.
-2. Chris must confirm the email he uses for **this website's** `/agent-admin/login`, even if different from AgentFlow. Resolve that exact email in authorized `auth.users` records; do not use a public contact email or name match as ownership evidence.
+1. Complete the new isolated project inside Underwriter Verified (`bmuykmwtwicpltmpenqm`), then verify its organization with Supabase before any write. Do not reconnect to AgentFlow or try to gain direct Supabase access to the Lovable-owned source. Keep source inspection in Lovable.
+2. Chris must confirm the email he intends to use for **this website's** `/agent-admin/login`, even if different from AgentFlow. There are currently zero source auth accounts. After account setup, resolve the exact confirmed email in destination `auth.users`; do not use a public contact email or name match as ownership evidence.
 3. Inspect any profile already owned by that account, its full content, and every incoming foreign-key relationship before proposing an assignment. Never delete a signup-created profile automatically. Any conflict requires a specific, data-preserving proposal and approval. Preserve immutable intake/consent records and their original agent links.
 4. The current Vercel connector supports inspection, but does not expose environment editing or deployment retirement. Use an already authorized CLI/API if available; otherwise obtain permission to use the signed-in Vercel dashboard for those operations.
 
 ## Release blockers to resolve before approval
 
-- Actual hosted migration history, policy/privilege/trigger/function definitions, and project version.
+- Destination project and hosted bootstrap verification. The source catalog is now inspected and captured separately.
 - Chris's confirmed login and a reviewed ownership correction including any conflicting profile.
 - Existing unsafe preview deployments retired or otherwise made inaccessible for testing; changing a new build cannot change old bundles.
-- Vercel Git linkage after the repository rename and production branch `main` verified from current settings. Existing builds still show the historical GitHub repo name in deployment metadata.
+- Vercel production settings and final environment values verified before cutover. The new preview at `4ba0824` confirms Git integration now uses repository `underwriter-verified`.
 - Final PR head, exact migration contents/checksums, deployment settings, and rollback target re-read with no unexpected concurrent changes.
 
 ## Preview intake protection

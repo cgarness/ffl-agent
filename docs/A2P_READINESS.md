@@ -4,7 +4,7 @@ Review only. Nothing in this change was submitted to Twilio. This is not an appr
 
 Production site: https://www.underwriterverified.com
 
-The website and database in `cgarness/underwriter-verified` are this directory site’s own Supabase project (`rtgmdbqzkwlmplurypyh` in `supabase/config.toml`). They are not the AgentFlow database. This repository does not send SMS.
+The website in `cgarness/underwriter-verified` currently uses Lovable Cloud backend `rtgmdbqzkwlmplurypyh`. A new, separate **Underwriter Verified** Supabase organization (`bmuykmwtwicpltmpenqm`, Free) has been created for its migration. The destination project and cutover are pending; see `docs/SUPABASE_TRANSFER.md`. AgentFlow is excluded from all transfer operations. This repository does not send SMS.
 
 ## Campaign description
 
@@ -109,11 +109,11 @@ Signup provisioning (`handle_new_agent_user` on `auth.users`) is unchanged and s
 
 What this migration does not do: it does not touch the existing production agent row or its `user_id`. Whether that row belongs to the login Chris actually uses at `/agent-admin` has to be confirmed by Chris after deploy. It must not be reassigned to a guessed account.
 
-Hosted recheck on October 3, 2026: a read-only GET confirms the canonical profile still has **`user_id = NULL`**. The intake and consent tables return `404 / PGRST205`. Full hosted policies, migration history, and auth ownership records remain unverified: the ChatGPT Supabase connection lists only AgentFlow and denies the website project. The anonymous write-grant probes in the previous handoff were not repeated. See `docs/RELEASE_PREFLIGHT.md` for lock-before-intake release order, guarded ownership correction with no automatic profile deletion, and required preview retirement.
+Hosted recheck on October 3, 2026 through the newly connected Lovable account confirms the canonical profile still has **`user_id = NULL`**, with **zero auth users**, one application table (`agents`), and no storage objects. Current source RLS has only public read and owner write policies; the historical anonymous policies described above are absent from the actual source. Broad table grants remain, so destination hardening is still required. Source catalog and the full original profile were captured read-only. The consent schema is prepared but not hosted. Follow `docs/SUPABASE_TRANSFER.md` for the new destination; preserve profile data and avoid automatic deletion when assigning ownership.
 
 ## Three different kinds of “ready”
 
-1. Website intake and consent storage — implementation is on this branch, not production. Earlier PostgreSQL/PostgREST/browser results are reported in the handoff. Follow-up verification independently passed 45 frontend tests, TypeScript, a preview build, and the ownership/consent SQL assertions in isolated PGlite with ownership locked before intake. This is not a repeat of the hosted or real PostgREST browser checks. Hosted access, ownership, preview retirement, release approval, deployment, and live verification remain pending.
+1. Website intake and consent storage — implementation is on this branch, not production. Earlier PostgreSQL/PostgREST/browser results are reported in the handoff. Follow-up verification independently passed 45 frontend tests, TypeScript, a preview build, and the ownership/consent SQL assertions in isolated PGlite with ownership locked before intake. Source access is now available through Lovable. Destination provisioning/restore, account setup, ownership, preview retirement, release approval, deployment, and live verification remain pending.
 2. Twilio registration readiness — the draft text in this document is ready for Chris to review. Legal name, EIN, structure, volume, account, and non-website opt-in sources are still missing. Nothing has been submitted to Twilio.
 3. Operational readiness to send — not ready. No sender exists in this repository. AgentFlow is a separate system with its own database; no code in this repository connects to it, and no existing mechanism to share consent with it was found here. Do not describe AgentFlow as using this site’s `evaluate_sms_eligibility` until that integration is built and verified.
 
