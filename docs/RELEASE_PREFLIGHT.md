@@ -1,8 +1,8 @@
 # Release preflight — intake and consent (PR #11)
 
-**Prepared, not released.** Production database changes, profile reassignment, and the production merge/deployment require Chris's approval of the final release after the remaining checks. Twilio submission and its fees require a separate approval. Never send communications or buy numbers during website verification.
+**Prepared, not released.** The separate destination ownership assignment was specifically approved and completed; it does not authorize production database changes or the production merge/deployment. Those require Chris's approval of the final release after the remaining checks. Twilio submission and its fees require a separate approval. Never send communications or buy numbers during website verification.
 
-**Migration update:** Chris confirmed that the source is Lovable Cloud and authorized a separate Supabase destination. The new **Underwriter Verified** organization (`bmuykmwtwicpltmpenqm`, Free) is created. Follow [SUPABASE_TRANSFER.md](SUPABASE_TRANSFER.md) for the fresh-project restore; the in-place release order below is historical context and must not be applied to AgentFlow or blindly replayed on the source. Direct Lovable inspection now confirms one full agent row, zero auth users/identities, no storage buckets/objects, and owner-only source RLS. The profile snapshot preserves its original headshot and timestamps. Destination project `jzdzeevjpootbeuniygx` is healthy in the separate organization; the original profile and consent schema are restored, auth redirects configured, and the secured Edge Function deployed. Account setup, ownership, the optional AI secret, and cutover remain pending. The Lovable query limit reset; a fresh source/destination profile hash and count comparison now matches. Repeat immediately before the eventual cutover.
+**Migration update:** Chris confirmed that the source is Lovable Cloud and authorized a separate Supabase destination. The new **Underwriter Verified** organization (`bmuykmwtwicpltmpenqm`, Free) is created. Follow [SUPABASE_TRANSFER.md](SUPABASE_TRANSFER.md) for the fresh-project restore; the in-place release order below is historical context and must not be applied to AgentFlow or blindly replayed on the source. Direct Lovable inspection confirmed one full agent row, zero auth users/identities, no storage buckets/objects, and owner-only source RLS. The profile snapshot preserves its original headshot and timestamps. Destination project `jzdzeevjpootbeuniygx` is healthy in the separate organization; the original profile and consent schema are restored, auth redirects configured, and the secured Edge Function deployed. Confirmed account setup and the specifically approved ownership assignment are complete; real owner browser verification, the optional AI secret, and production cutover remain pending. The last pre-account source/destination profile hash and count comparison matched. Repeat immediately before eventual cutover, accounting for the documented destination-only account, preserved starter, and ownership/update-timestamp changes.
 
 ## Verified targets and current evidence (October 3, 2026)
 
@@ -15,7 +15,7 @@
 | Production deployment | `dpl_EaYxadau9ifZd1hhMGZ6RS2Dgrr5`, READY, Git source, production target; aliases include both production domains; Vercel currently marks it a rollback candidate |
 | Vercel project | `underwriterverified` / `prj_8B75x0g4FBYsP2uzSIEeCYHhMJSw`, team `cgarness-projects` / `team_iPboOWpwdIQRwdxmA5GJp5Rq` |
 | Website database | Source Lovable Cloud `rtgmdbqzkwlmplurypyh`; destination `jzdzeevjpootbeuniygx` in organization `bmuykmwtwicpltmpenqm`; **never** AgentFlow's `jncvvsvckxhqgqvkppmj` |
-| Canonical profile | Read-only GET confirmed `e7c2f35a-e215-4e9e-9492-176a344384eb`, `cg-financial/christopher-garness`, `user_id = NULL` |
+| Canonical profile | Source remains unowned. Destination `e7c2f35a-e215-4e9e-9492-176a344384eb`, `cg-financial/christopher-garness`, now belongs to the confirmed `chris@fflagent.com` account after the separately approved transaction; content preserved |
 | Public intake tables | Source has only `agents`; destination now has the reviewed consent schema with zero intake/consent records and RLS enabled |
 | Hosted source access | Lovable connection now exposes the correct source project. Catalog and counts inspected read-only; see SUPABASE_TRANSFER.md. Supabase cannot administer this Lovable-owned source |
 | Preview update | `4ba0824` added the preview submission guard and triggered a new Git-integrated preview. Older `ad9f2a6` bundles still contain the source hostname and intake RPC without that guard |
@@ -26,14 +26,14 @@ Earlier anonymous zero-row PATCH/DELETE probes are historical evidence only. The
 ## Prepare destination and identify the owner
 
 1. Destination project `jzdzeevjpootbeuniygx` is restored inside Underwriter Verified (`bmuykmwtwicpltmpenqm`). Verify this identity before any further write. Do not reconnect to AgentFlow or try to gain direct Supabase access to the Lovable-owned source. Keep source inspection in Lovable.
-2. Chris must confirm the email he intends to use for **this website's** `/agent-admin/login`, even if different from AgentFlow. There are currently zero source auth accounts. After account setup, resolve the exact confirmed email in destination `auth.users`; do not use a public contact email or name match as ownership evidence.
-3. Inspect any profile already owned by that account, its full content, and every incoming foreign-key relationship before proposing an assignment. Never delete a signup-created profile automatically. Any conflict requires a specific, data-preserving proposal and approval. Preserve immutable intake/consent records and their original agent links.
+2. Completed: Chris explicitly confirmed `chris@fflagent.com`, created the destination account, and its confirmed Auth UUID was resolved as `0e1b5e00-f63b-4c36-8d60-a4460ed7d55b`. This was not inferred from a public contact field. No password was read or stored.
+3. Completed at 2026-10-04 00:14:04 UTC: after exact row-content and incoming-FK checks and specific approval, the blank signup profile was unlinked without deletion and the original profile assigned atomically. Independent readback verifies both rows preserved, unchanged content, RLS enabled, anonymous UPDATE denied, and zero intake/consent/suppression/AI-usage rows. See the exact IDs and hashes in SUPABASE_TRANSFER.md. Real owner browser verification remains pending.
 4. The current Vercel connector supports inspection, but does not expose environment editing or deployment retirement. Use an already authorized CLI/API if available; otherwise obtain permission to use the signed-in Vercel dashboard for those operations.
 
 ## Release blockers to resolve before approval
 
-- Repeat the source delta check immediately before eventual cutover; the latest live comparison matches. Destination bootstrap, exact profile comparison, RLS/grants, public profile GET, and unauthenticated function rejection are verified.
-- Chris's confirmed login and a reviewed ownership correction including any conflicting profile.
+- Repeat the source delta check immediately before eventual cutover. The last pre-account comparison matched; now account for the documented destination-only account, preserved starter, and canonical ownership/update-timestamp changes. Destination bootstrap, exact content preservation, RLS/grants, public profile GET, and unauthenticated function rejection are verified.
+- Verify the original profile and inbox through Chris's real login; confirmed account setup and the approved ownership correction are complete.
 - Existing unsafe preview deployments retired or otherwise made inaccessible for testing; changing a new build cannot change old bundles.
 - Vercel production settings and final environment values verified before cutover. The new preview at `4ba0824` confirms Git integration now uses repository `underwriter-verified`.
 - Final PR head, exact migration contents/checksums, deployment settings, and rollback target re-read with no unexpected concurrent changes.
@@ -176,7 +176,7 @@ Re-read effective permissions after closing the RPC. Reopening requires a review
 
 ## Separate readiness decisions
 
-- Website: destination restored and configured, draft frontend prepared; confirmed login, ownership, source delta check, preview retirement, approval, production cutover, and live owner checks remain.
+- Website: destination restored and configured, confirmed account created, original profile assigned with content preserved, draft frontend prepared; source delta check, preview retirement, release approval, production cutover, and real owner checks remain.
 - Registration: use `docs/A2P_READINESS.md`; exact business identity, Twilio account/existing resources, volume, and all consent sources remain unconfirmed. No registration submitted.
 - Sending: no website sender, queue, or AgentFlow consent connection exists. Send-time consent/suppression and provider STOP/HELP must be implemented and verified in the actual sender before operation.
 
@@ -192,6 +192,6 @@ Re-read effective permissions after closing the RPC. Reopening requires a review
 | Release sequence and SQL behavior | All repository migrations, `agents_before_fix.sql`, `agents_after_fix.sql`, and `intake_assertions.sql` executed in isolated PGlite. Ownership lock applied before intake, and the intermediate state explicitly verified no public intake function plus no anonymous profile UPDATE privilege. Passed |
 | Native PostgreSQL / PostgREST repeat | Not repeated here: the executor cannot switch to the local PostgreSQL OS account. PGlite results are not hosted or PostgREST integration results |
 | Browser | Cloud Browser verified the new draft preview at application commit `246a3b9`: original profile/photo rendered, both SMS choices unchecked, intake button disabled, preview notice present. No submission or owner login performed |
-| Hosted destination | Both migrations applied; exact profile restored; public GET 200; RLS/grants verified; unauthenticated Edge Function 401; email auth enabled with confirmation required. Real owner login and paid AI call remain unverified |
+| Hosted destination | Both migrations applied; exact profile restored; approved account/ownership setup completed with both profiles preserved; public GET 200; RLS/grants verified; unauthenticated Edge Function 401; email auth enabled with confirmation required. Real owner browser login and paid AI call remain unverified |
 
 The older handoff's 25 API / 20 browser passes remain reported prior evidence only. Production stays on `f220400a` until the approved release.

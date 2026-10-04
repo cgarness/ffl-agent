@@ -1,6 +1,6 @@
 # Underwriter Verified: Lovable Cloud transfer
 
-Updated October 3, 2026. The separate destination project is healthy, the original profile is restored, and the secured Edge Function is deployed. Frontend changes remain in draft PR #11; production cutover still needs approval. Do not operate on any AgentFlow resource.
+Updated October 4, 2026 UTC. The separate destination project is healthy, the original profile is restored and assigned to Chris's confirmed login, and the secured Edge Function is deployed. Frontend changes remain in draft PR #11; production cutover still needs approval. Do not operate on any AgentFlow resource.
 
 ## Confirmed targets
 
@@ -52,7 +52,7 @@ Local verification on October 3 passed in isolated PGlite: exact equality of eve
 
 - Hosted bootstrap migration: `20261003205343_bootstrap_underwriter_verified_from_lovable`. Bootstrap SHA-256: `83ba2dd3400c69db5db6e9e678306f3ba2cec2238ecd2e6765a508d30824d142`.
 - Hosted follow-up: `20261003211036_secure_transferred_functions`, from local `20261003205704_secure_transferred_functions.sql`. The management tool assigns its own applied timestamp. Preserve this mapping rather than replaying it through `db push`.
-- Exact hosted JSON comparison confirmed all original profile fields, original ID, image, ownership, and timestamps match the snapshot. Profile remains unowned. Auth users, intake requests, and consent events remain empty.
+- Before account setup, exact hosted JSON comparison confirmed all original profile fields, original ID, image, ownership, and timestamps matched the snapshot. The approved ownership assignment below intentionally changed only ownership and the automatic update timestamp. Intake requests and consent events remain empty.
 - All seven application tables have RLS. Anonymous profile INSERT/UPDATE/DELETE privileges are absent; authenticated profile and inbox access remains owner-scoped.
 - The three mutable-search-path advisor warnings are fixed. Remaining advisor findings reflect intentional access: validated public `submit_public_intake`, owner-scoped authenticated `my_sms_eligibility`, and server-only tables with no client policies. See [public definer guidance](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable), [authenticated definer guidance](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable), and [RLS policy guidance](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy).
 - Email/Password enabled, email confirmation enabled, anonymous sign-ins disabled. Site URL: `https://www.underwriterverified.com`; exact redirects: `https://www.underwriterverified.com/agent-admin` and `https://underwriterverified.com/agent-admin`.
@@ -63,13 +63,23 @@ Local verification on October 3 passed in isolated PGlite: exact equality of eve
 - Profile saving now explicitly updates the loaded owner-scoped row (or inserts when absent), because the preserved partial `user_id` unique index cannot support the previous PostgREST `onConflict` upsert.
 - All 55 tests, TypeScript, changed-file ESLint, and the preview build passed. Function tests use mocked services; real owner sign-in and an authenticated paid generation remain unverified.
 
+## Approved destination ownership assignment
+
+Chris explicitly confirmed `chris@fflagent.com` as this website's login and created the confirmed destination account `0e1b5e00-f63b-4c36-8d60-a4460ed7d55b`. No password was read or stored by the assistant. Signup created the blank starter profile `2ee5b0f9-ed17-4905-bcaf-a3b8eba32332` (`agency/chris`), conflicting with the one-profile-per-user index.
+
+After separate approval of the data-preserving resolution, a guarded atomic transaction at **2026-10-04 00:14:04 UTC** unlinked that starter (`user_id = NULL`) and assigned the original `e7c2f35a-e215-4e9e-9492-176a344384eb` (`cg-financial/christopher-garness`) to the confirmed account. It checked the exact account, locked the profile rows, checked full pre-change hashes, and verified no starter-linked intake, consent, or suppression records existed. No row was deleted, no permission changed, and the starter remains publicly readable under the existing profile SELECT policy; it was not archived or hidden.
+
+Independent post-commit readback confirmed two profiles preserved, exactly the original profile owned by the confirmed user, and the starter unlinked. Every field except `user_id` and the trigger-managed `updated_at` remained unchanged on both rows. Content JSON MD5 excluding those two fields: original `43ded92460cf1601e8620bc071ea6329`; starter `ce9a2ab9eeed3c3206af6a2404eb41ba`. RLS remains enabled and anonymous UPDATE remains denied. Intake, consent, suppression, and AI usage counts are all zero. A real owner browser sign-in remains unverified.
+
+The historical source/destination full-row equality and zero-auth counts above describe the state **before** this approved setup. Future delta checks must explicitly account for the new destination auth account, preserved starter, and intentional canonical ownership/timestamp differences, while still comparing all canonical profile content and reviewing any new source records.
+
 ## Remaining setup and cutover
 
-1. A fresh Lovable/destination comparison now matches. Repeat immediately before the eventual cutover and reconcile any subsequent changes.
-2. Chris must confirm the intended website login email. Account setup and a guarded ownership assignment remain separate from transferring the unowned row. Never delete an auto-created starter profile to clear a conflict.
+1. Repeat the Lovable/destination delta check immediately before eventual cutover, accounting for the documented destination-only account and ownership changes; reconcile any subsequent source changes.
+2. Account setup and the specifically approved ownership assignment are complete. Verify the original profile and inbox through Chris's real login; never mint a user session or delete the preserved starter automatically.
 3. Add an owned OpenAI API key directly as the new project's `AI_API_KEY` Edge Function secret if sample generation is wanted. Do not put it in chat, Git, or a `VITE_*` variable. Verify an authenticated request after account setup; manual testimonials do not require this feature.
 4. Verify the draft deployment's destination, original public profile, and nested routes. Verify real sign-in, owner editing/inbox, and consent persistence only in the approved workflow. Preserve production/preview separation and resolve old preview access.
-5. Obtain approval for the exact PR head, owner assignment, Vercel production configuration, and cutover. Rebuild production with its correct target. Keep the Lovable backend intact for rollback and reconcile any post-cutover data before rolling back.
+5. Obtain separate approval for the exact PR head, Vercel production configuration, and cutover. The ownership approval does not authorize a production release. Rebuild production with its correct target. Keep the Lovable backend intact for rollback and reconcile any post-cutover data before rolling back.
 
 No production environment, DNS, source data, AgentFlow resource, Twilio registration, messaging, or phone numbers were changed during this preparation.
 
